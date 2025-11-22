@@ -9,11 +9,11 @@ camera.position.setZ(5);
 // --- Глобальные переменные ---
 let currentTheme = 'space';
 let currentMaterial;
-let planeMesh; // Объект, на который будет накладываться шейдер
+let planeMesh; 
 let currentStyle = {};
-const shaderCache = {}; // Кэш для хранения загруженных шейдеров
+const shaderCache = {};
 
-// Названия шейдеров
+// --- Константы тем ---
 const THEMES = {
     space: {
         vertex: 'base_vertex.glsl',
@@ -22,6 +22,10 @@ const THEMES = {
     platok: {
         vertex: 'base_vertex.glsl',
         fragment: 'platok.frag',
+    },
+    exotic_nebula: {
+        vertex: 'base_vertex.glsl', 
+        fragment: 'exotic_nebula.frag',
     }
 };
 
@@ -32,8 +36,7 @@ const saveBtn = document.getElementById('save-style-btn');
 const loadBtn = document.getElementById('load-styles-btn');
 const stylesList = document.getElementById('saved-styles-list');
 const themeSelect = document.getElementById('theme-select');
-const styleInfoContainer = document.getElementById('style-info-container'); // <-- Новый элемент
-
+const styleInfoContainer = document.getElementById('style-info-container');
 
 // --- Основная логика ---
 
@@ -44,6 +47,7 @@ async function init() {
     planeMesh = new THREE.Mesh(geometry, currentMaterial);
     scene.add(planeMesh);
     applyStyle(getDefaultStyle());
+    addEventListeners();
     animate();
 }
 
@@ -64,10 +68,13 @@ async function switchTheme(themeName, isInitial = false) {
     }
     currentTheme = themeName;
 
+    const vertexShader = await loadShader(THEMES[themeName].vertex);
+    const fragmentShader = shaderCache[THEMES[themeName].fragment];
+
     currentMaterial = new THREE.ShaderMaterial({
         uniforms: getUniformsForTheme(themeName),
-        vertexShader: shaderCache[THEMES[themeName].vertex],
-        fragmentShader: shaderCache[THEMES[themeName].fragment],
+        vertexShader: vertexShader,
+        fragmentShader: fragmentShader,
         transparent: true,
     });
     
@@ -75,7 +82,7 @@ async function switchTheme(themeName, isInitial = false) {
         planeMesh.material = currentMaterial;
     }
 
-    applyStyle(getDefaultStyle()); // Применяем и отображаем дефолтный стиль при смене темы
+    applyStyle(getDefaultStyle());
 
     if (!isInitial) {
         generateBtn.click();
@@ -97,20 +104,18 @@ function applyStyle(style) {
             }
         }
     }
-    updateStyleInfo(style); // <-- Вызываем новую функцию
+    updateStyleInfo(style);
 }
 
 // --- Отображение информации о стиле ---
 
 function updateStyleInfo(style) {
     if (!styleInfoContainer) return;
-
-    styleInfoContainer.innerHTML = ''; // Очищаем предыдущую информацию
+    styleInfoContainer.innerHTML = '';
 
     for (const key in style) {
         const value = style[key];
         const paramDiv = document.createElement('div');
-
         let displayValue;
         if (key === 'palette' && Array.isArray(value)) {
             displayValue = value.map(color =>
@@ -121,12 +126,10 @@ function updateStyleInfo(style) {
         } else {
             displayValue = value;
         }
-
         paramDiv.innerHTML = `<span class="param-name">${key}:</span> <span class="param-value">${displayValue}</span>`;
         styleInfoContainer.appendChild(paramDiv);
     }
 }
-
 
 // --- API и Генерация ---
 
@@ -134,30 +137,20 @@ async function requestStyleFromNous(mood, theme) {
     const apiKey = 'sk-7l89m19dfmdqo114vxrhj';
     const url = 'https://inference-api.nousresearch.com/v1/chat/completions';
     const headers = { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' };
-
     const systemPrompt = getSystemPromptForTheme(theme);
     if (!systemPrompt) {
         alert("Sorry, this theme isn't configured for generation yet.");
         return null;
     }
-
-    const body = {
-        model: "DeepHermes-3-Mistral-24B-Preview",
-        messages: [
-            { role: "system", content: systemPrompt },
-            { role: "user", content: `Generate a style for the mood: ${mood}` }
-        ]
-    };
+    const body = JSON.stringify({ model: "DeepHermes-3-Mistral-24B-Preview", messages: [{ role: "system", content: systemPrompt }, { role: "user", content: `Generate a style for the mood: ${mood}` }] });
 
     try {
-        const response = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(body) });
+        const response = await fetch(url, { method: 'POST', headers, body });
         if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
-        
         const data = await response.json();
         const jsonContent = data.choices[0].message.content;
         const cleanedJson = jsonContent.replace(/```json/g, '').replace(/```/g, '').trim();
         return JSON.parse(cleanedJson);
-
     } catch (error) {
         console.error("Error fetching style:", error);
         alert("Failed to generate style. Please check the console for details.");
@@ -176,18 +169,12 @@ async function loadShader(url) {
         shaderCache[url] = text;
         return text;
     } catch (error) {
-        console.error(error);
-        return null;
+        console.error(error); return null;
     }
 }
 
 async function preloadShaders() {
-    const promises = [];
-    for (const themeName in THEMES) {
-        const theme = THEMES[themeName];
-        promises.push(loadShader(theme.vertex));
-        promises.push(loadShader(theme.fragment));
-    }
+    const promises = Object.values(THEMES).flatMap(theme => [loadShader(theme.vertex), loadShader(theme.fragment)]);
     await Promise.all(promises);
 }
 
@@ -198,85 +185,65 @@ function getUniformsForTheme(theme) {
     };
 
     if (theme === 'space') {
-        return {
-            ...commonUniforms,
-            intensity: { value: 0.5 },
-            detail: { value: 0.3 },
-            movement: { value: 0.05 },
-            palette: { value: [new THREE.Color("#0d1b2a"), new THREE.Color("#1b263b"), new THREE.Color("#415a77")] },
-        };
+        return { ...commonUniforms, intensity: { value: 0.5 }, detail: { value: 0.3 }, movement: { value: 0.05 }, palette: { value: [new THREE.Color("#0d1b2a"), new THREE.Color("#1b263b"), new THREE.Color("#415a77")] } };
     } else if (theme === 'platok') {
-        return {
-            ...commonUniforms,
-            formuparam: { value: 0.53 },
-            zoom: { value: 0.8 },
-            speed: { value: 0.0 },
-            brightness: { value: 0.0015 },
-            darkmatter: { value: 0.3 },
-            saturation: { value: 0.85 },
-            distfading: {value: 0.73}
+        return { ...commonUniforms, formuparam: { value: 0.53 }, zoom: { value: 0.8 }, speed: { value: 0.0 }, brightness: { value: 0.0015 }, darkmatter: { value: 0.3 }, saturation: { value: 0.85 }, distfading: {value: 0.73} };
+    } else if (theme === 'exotic_nebula') {
+        return { 
+            ...commonUniforms, 
+            iMouse: { value: new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2) },
+            palette: { value: [new THREE.Color("#4a00e0"), new THREE.Color("#8e2de2"), new THREE.Color("#0f0c29")] },
+            detail_scale: { value: 0.5 }, 
+            gamma: { value: 0.6 }, 
+            distortion: { value: 12.0 }, 
+            speed_multiplier: { value: 1.0 } 
         };
     }
     return commonUniforms;
 }
 
 function getSystemPromptForTheme(theme) {
-    if (theme === 'space') {
-        return 'You output ONLY valid JSON for cosmic generation. The JSON must follow this structure: { "palette": ["#RRGGBB", "#RRGGBB", "#RRGGBB"], "intensity": float, "movement": float (a small value, e.g. 0.01 to 0.2), "detail": float }';
-    } else if (theme === 'platok') {
-        return 'You output ONLY valid JSON for a fractal shader. The JSON must follow this structure: { "formuparam": float (0.4 to 0.6), "zoom": float (0.5 to 1.2), "speed": float (0.0 to 0.05), "brightness": float (0.001 to 0.003), "darkmatter": float (0.1 to 0.5), "saturation": float (0.5 to 1.0), "distfading": float(0.6, 0.9) }';
-    }
+    if (theme === 'space') return 'You output ONLY valid JSON for cosmic generation. The JSON must follow this structure: { "palette": ["#RRGGBB", "#RRGGBB", "#RRGGBB"], "intensity": float, "movement": float (a small value, e.g. 0.01 to 0.2), "detail": float }';
+    if (theme === 'platok') return 'You output ONLY valid JSON for a fractal shader. The JSON must follow this structure: { "formuparam": float (0.4 to 0.6), "zoom": float (0.5 to 1.2), "speed": float (0.0 to 0.05), "brightness": float (0.001 to 0.003), "darkmatter": float (0.1 to 0.5), "saturation": float (0.5 to 1.0), "distfading": float(0.6, 0.9) }';
+    if (theme === 'exotic_nebula') return 'You output ONLY valid JSON for an exotic nebula shader. The JSON must follow this structure: { "palette": ["#RRGGBB", "#RRGGBB", "#RRGGBB"], "detail_scale": float (0.1 to 1.0), "gamma": float (0.4 to 1.0), "distortion": float (5.0 to 25.0), "speed_multiplier": float (0.1 to 2.0) }';
     return null;
 }
 
 function getDefaultStyle() {
-    if (currentTheme === 'space') {
-       return {
-            palette: ["#0d1b2a", "#1b263b", "#415a77"],
-            intensity: 0.5,
-            movement: 0.05,
-            detail: 0.3
-        };
-    } else if (currentTheme === 'platok') {
-        return {
-            formuparam: 0.53,
-            zoom: 0.8,
-            speed: 0.0,
-            brightness: 0.0015,
-            darkmatter: 0.3,
-            saturation: 0.85,
-            distfading: 0.73
-        };
-    }
+    if (currentTheme === 'space') return { palette: ["#0d1b2a", "#1b263b", "#415a77"], intensity: 0.5, movement: 0.05, detail: 0.3 };
+    if (currentTheme === 'platok') return { formuparam: 0.53, zoom: 0.8, speed: 0.0, brightness: 0.0015, darkmatter: 0.3, saturation: 0.85, distfading: 0.73 };
+    if (currentTheme === 'exotic_nebula') return { palette: ["#4a00e0", "#8e2de2", "#0f0c29"], detail_scale: 0.5, gamma: 0.6, distortion: 12.0, speed_multiplier: 1.0 };
     return {};
 }
 
 // --- Обработчики событий ---
+function addEventListeners() {
+    generateBtn.addEventListener('click', async () => {
+        const mood = moodInput.value.trim();
+        if (!mood) { alert("Please enter a mood."); return; }
+        generateBtn.textContent = 'Generating...';
+        generateBtn.disabled = true;
+        const style = await requestStyleFromNous(mood, currentTheme);
+        if (style) applyStyle(style);
+        generateBtn.textContent = 'Generate';
+        generateBtn.disabled = false;
+    });
 
-generateBtn.addEventListener('click', async () => {
-    const mood = moodInput.value.trim();
-    if (!mood) {
-        alert("Please enter a mood.");
-        return;
-    }
-    generateBtn.textContent = 'Generating...';
-    generateBtn.disabled = true;
+    themeSelect.addEventListener('change', (e) => switchTheme(e.target.value));
 
-    const style = await requestStyleFromNous(mood, currentTheme);
-    if (style) {
-        applyStyle(style);
-    }
+    document.addEventListener('mousemove', (event) => {
+        if (currentMaterial && currentMaterial.uniforms.iMouse) {
+            currentMaterial.uniforms.iMouse.value.set(event.clientX, window.innerHeight - event.clientY);
+        }
+    });
     
-    generateBtn.textContent = 'Generate';
-    generateBtn.disabled = false;
-});
-
-themeSelect.addEventListener('change', (e) => {
-    switchTheme(e.target.value);
-});
-
-// ... (остальные обработчики событий для сохранения/загрузки стилей)
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        if(currentMaterial) currentMaterial.uniforms.iResolution.value.set(window.innerWidth, window.innerHeight);
+    });
+}
 
 // --- Инициализация ---
 init();
-
