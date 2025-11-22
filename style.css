@@ -4,14 +4,14 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #000;
     color: #fff;
-    overflow: hidden; /* Это хорошо, предотвращает появление полос прокрутки у холста */
+    overflow: hidden;
 }
 
 #bg {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw; /* Используем vw и vh для явного указания единиц области просмотра */
+    width: 100vw;
     height: 100vh;
     z-index: -1;
 }
@@ -20,7 +20,7 @@ body {
     position: absolute;
     top: 20px;
     left: 50%;
-    transform: translateX(-50%); /* Центрируем контейнер */
+    transform: translateX(-50%);
     z-index: 10;
     display: flex;
     flex-direction: column;
@@ -28,22 +28,22 @@ body {
     background: rgba(0, 0, 0, 0.6);
     padding: 20px;
     border-radius: 12px;
-    width: 90%; /* Используем процентную ширину */
-    max-width: 500px; /* Устанавливаем максимальную ширину для больших экранов */
-    box-sizing: border-box; /* Включаем padding в расчет ширины */
+    width: 90%;
+    max-width: 500px;
+    box-sizing: border-box;
 }
 
 #input-container, #controls-container {
     display: flex;
     align-items: center;
-    gap: 10px;
-    flex-wrap: wrap; /* Разрешаем элементам переноситься на следующую строку */
-    justify-content: center; /* Центрируем элементы при переносе */
+    gap: 15px; /* Немного увеличим разрыв для нового элемента */
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
 #mood-input {
-    flex-grow: 1; /* Разрешаем полю ввода расти и заполнять доступное пространство */
-    min-width: 180px; /* Предотвращаем его слишком сильное сжатие */
+    flex-grow: 1;
+    min-width: 180px;
     padding: 12px;
     border: 1px solid #445577;
     background-color: #112244;
@@ -52,21 +52,38 @@ body {
     font-size: 16px;
 }
 
-button {
+button, #theme-select {
     padding: 12px 18px;
-    border: none;
+    border: 1px solid #445577;
+    background-color: #1c2b4a;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button {
     background-color: #8899FF;
     color: #000;
-    border-radius: 6px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: background-color 0.3s;
-    flex-shrink: 0; /* Предотвращаем сжатие кнопок */
+    border: none;
+    flex-shrink: 0;
 }
 
 button:hover {
     background-color: #aaccff;
 }
+
+#theme-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#theme-select:hover {
+    background-color: #2a3f6a;
+}
+
 
 #load-styles-container {
     position: relative;
@@ -77,7 +94,7 @@ button:hover {
     position: absolute;
     top: 100%;
     left: 0;
-    right: 0; /* Заставляем его занимать всю ширину контейнера */
+    right: 0;
     background: rgba(0, 0, 0, 0.85);
     border: 1px solid #445577;
     border-radius: 6px;
@@ -86,7 +103,7 @@ button:hover {
     margin: 8px 0 0;
     max-height: 250px;
     overflow-y: auto;
-    z-index: 20; /* Убеждаемся, что он находится над другими элементами интерфейса */
+    z-index: 20;
 }
 
 #saved-styles-list.show {
@@ -107,7 +124,41 @@ button:hover {
     background-color: #223355;
 }
 
-/* Медиа-запрос для очень маленьких экранов для дальнейшей настройки макета */
+#style-info-container {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    color: #fff;
+    padding: 15px;
+    box-sizing: border-box;
+    z-index: 5;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 14px;
+    border-top: 1px solid #445577;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+#style-info-container div {
+    display: inline-block;
+    margin: 5px 15px;
+}
+
+#style-info-container .param-name {
+    font-weight: bold;
+    color: #8899FF;
+}
+
+#style-info-container .param-value {
+    color: #aaccff;
+}
+
 @media (max-width: 480px) {
     #ui-container {
         padding: 15px;
@@ -119,8 +170,12 @@ button:hover {
         width: 100%;
     }
 
-    #mood-input, button {
-        width: 100%; /* Делаем поле ввода и кнопки на всю ширину */
-        box-sizing: border-box; /* Убеждаемся, что padding включен в ширину */
+    #mood-input, button, #theme-selector {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    
+    #theme-select {
+        flex-grow: 1;
     }
 }

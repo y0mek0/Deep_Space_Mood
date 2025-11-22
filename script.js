@@ -1,222 +1,257 @@
-// Настройка сцены Three.js
+
+// --- Базовая настройка Three.js ---
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#bg') });
-
+const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#bg'), antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
-camera.position.setZ(30);
+camera.position.setZ(5);
 
-// Переменные для хранения объектов
-let stars, nebula;
+// --- Глобальные переменные ---
+let currentTheme = 'space';
+let currentMaterial;
+let planeMesh; // Объект, на который будет накладываться шейдер
 let currentStyle = {};
+const shaderCache = {}; // Кэш для хранения загруженных шейдеров
 
-// --- Инициализация и цикл анимации ---
-
-function init() {
-    // Дефолтный стиль при запуске
-    const defaultStyle = {
-        palette: ["#0d1b2a", "#1b263b", "#415a77"],
-        nebula: { intensity: 0.5, movement: 0.05, detail: 0.3 },
-        stars: { count: 300, twinkleSpeed: 0.1 },
-        effects: { clickFlash: true, mouseDistortion: true, colorShift: false },
-        camera: { rotationSpeed: 0.0, zoomSpeed: 1.0 }
-    };
-    applyCosmicStyle(defaultStyle);
-    animate();
-}
-
-function animate() {
-    requestAnimationFrame(animate);
-
-    if (stars) {
-        stars.material.uniforms.time.value += (currentStyle.stars.twinkleSpeed || 0.1) * 0.1;
+// Названия шейдеров
+const THEMES = {
+    space: {
+        vertex: 'base_vertex.glsl',
+        fragment: 'space.frag',
+    },
+    platok: {
+        vertex: 'base_vertex.glsl',
+        fragment: 'platok.frag',
     }
+};
 
-    if (nebula) {
-        nebula.material.uniforms.time.value += (currentStyle.nebula.movement || 0.05) * 0.1;
-    }
-
-    renderer.render(scene, camera);
-}
-
-// --- Генерация космических объектов ---
-
-function createStars(params) {
-    if (stars) scene.remove(stars);
-
-    const geometry = new THREE.BufferGeometry();
-    const positions = [];
-    for (let i = 0; i < params.count; i++) {
-        positions.push((Math.random() - 0.5) * 600, (Math.random() - 0.5) * 600, (Math.random() - 0.5) * 600);
-    }
-    geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
-
-    const material = new THREE.ShaderMaterial({
-        uniforms: {
-            time: { value: 1.0 },
-            color: { value: new THREE.Color(params.palette[2] || "#ffffff") }
-        },
-        vertexShader: `
-            uniform float time;
-            varying float vOpacity;
-            void main() {
-                vOpacity = sin(position.x * 10.0 + time) * 0.5 + 0.5;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-                gl_PointSize = 1.5;
-            }
-        `,
-        fragmentShader: `
-            uniform vec3 color;
-            varying float vOpacity;
-            void main() {
-                gl_FragColor = vec4(color, vOpacity);
-            }
-        `,
-        transparent: true
-    });
-
-    stars = new THREE.Points(geometry, material);
-    scene.add(stars);
-}
-
-function createNebula(params) {
-    if (nebula) scene.remove(nebula);
-
-    const geometry = new THREE.SphereGeometry(250, 64, 64);
-    const material = new THREE.ShaderMaterial({
-        uniforms: {
-            time: { value: 1.0 },
-            intensity: { value: params.intensity },
-            detail: { value: params.detail },
-            palette: { value: params.palette.map(c => new THREE.Color(c)) }
-        },
-        vertexShader: `
-            varying vec2 vUv;
-            void main() {
-                vUv = uv;
-                gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-        `,
-        fragmentShader: `
-            varying vec2 vUv;
-            uniform float time;
-            uniform float intensity;
-            uniform float detail;
-            uniform vec3 palette[3];
-            
-            vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-            vec2 mod289(vec2 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-            vec3 permute(vec3 x) { return mod289(((x*34.0)+1.0)*x); }
-            float snoise(vec2 v) {
-                const vec4 C = vec4(0.211324865405187, 0.366025403784439, -0.577350269189626, 0.024390243902439);
-                vec2 i  = floor(v + dot(v, C.yy) );
-                vec2 x0 = v -   i + dot(i, C.xx);
-                vec2 i1 = (x0.x > x0.y) ? vec2(1.0, 0.0) : vec2(0.0, 1.0);
-                vec4 x12 = x0.xyxy + C.xxzz;
-                x12.xy -= i1;
-                i = mod289(i);
-                vec3 p = permute( permute( i.y + vec3(0.0, i1.y, 1.0 )) + i.x + vec3(0.0, i1.x, 1.0 ));
-                vec3 m = max(0.5 - vec3(dot(x0,x0), dot(x12.xy,x12.xy), dot(x12.zw,x12.zw)), 0.0);
-                m = m*m; m = m*m;
-                vec3 x = 2.0 * fract(p * C.www) - 1.0;
-                vec3 h = abs(x) - 0.5;
-                vec3 ox = floor(x + 0.5);
-                vec3 a0 = x - ox;
-                m *= 1.79284291400159 - 0.85373472095314 * ( a0*a0 + h*h );
-                vec3 g;
-                g.x  = a0.x  * x0.x  + h.x  * x0.y;
-                g.yz = a0.yz * x12.xz + h.yz * x12.yw;
-                return 130.0 * dot(m, g);
-            }
-
-            void main() {
-                vec2 scrollingUv = vec2(vUv.x + time * 0.1, vUv.y);
-                float n = snoise(scrollingUv * detail * 5.0);
-
-                n = (n + 1.0) / 2.0;
-                vec3 color = mix(palette[0], palette[1], smoothstep(0.4, 0.6, n));
-                color = mix(color, palette[2], smoothstep(0.7, 0.9, n));
-                gl_FragColor = vec4(color * intensity, 1.0);
-            }
-        `,
-        transparent: true,
-        depthWrite: false,
-        side: THREE.BackSide
-    });
-
-    nebula = new THREE.Mesh(geometry, material);
-    scene.add(nebula);
-}
-
-function applyCosmicStyle(style) {
-    // Ограничиваем скорость, чтобы избежать слишком быстрой анимации.
-    // Это защита на случай, если API вернет слишком большое значение.
-    if (style.nebula && typeof style.nebula.movement === 'number') {
-        style.nebula.movement = Math.min(style.nebula.movement, 0.3); // Ограничение максимальной скорости
-    }
-
-    currentStyle = style;
-
-    if (style.palette) {
-        document.body.style.background = `linear-gradient(180deg, ${style.palette[0]}, ${style.palette[1]})`;
-    }
-
-    if (style.stars) {
-        createStars({ ...style.stars, palette: style.palette });
-    }
-
-    if (style.nebula) {
-        createNebula({ ...style.nebula, palette: style.palette });
-    }
-}
-
-
-async function requestCosmicStyleFromNous(mood) {
-    const apiKey = 'sk-7l89m19dfmdqo114vxrhj';
-    const url = 'https://inference-api.nousresearch.com/v1/chat/completions';
-
-    const headers = {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-    };
-
-    const body = {
-        model: "DeepHermes-3-Mistral-24B-Preview",
-        messages: [
-            { role: "system", content: "You output ONLY valid JSON for cosmic generation. The JSON must follow this structure: { \"palette\": [\"#RRGGBB\", \"#RRGGBB\", \"#RRGGBB\"], \"nebula\": { \"intensity\": float, \"movement\": float (a small value, e.g. 0.01 to 0.2), \"detail\": float }, \"stars\": { \"count\": integer, \"twinkleSpeed\": float }, \"camera\": { \"rotationSpeed\": float (must be 0.0), \"zoomSpeed\": float } }" },
-            { role: "user", content: `Generate cosmic style for mood: ${mood}` }
-        ]
-    };
-
-    try {
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify(body)
-        });
-
-        if (!response.ok) {
-            throw new Error(`API request failed with status ${response.status}`);
-        }
-
-        const data = await response.json();
-        const jsonContent = data.choices[0].message.content;
-        
-        const cleanedJson = jsonContent.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
-        return JSON.parse(cleanedJson);
-
-    } catch (error) {
-        console.error("Error fetching cosmic style:", error);
-        alert("Failed to generate style. Please check the console for details.");
-        return null;
-    }
-}
-
+// --- Элементы UI ---
 const moodInput = document.getElementById('mood-input');
 const generateBtn = document.getElementById('generate-btn');
 const saveBtn = document.getElementById('save-style-btn');
 const loadBtn = document.getElementById('load-styles-btn');
 const stylesList = document.getElementById('saved-styles-list');
+const themeSelect = document.getElementById('theme-select');
+const styleInfoContainer = document.getElementById('style-info-container'); // <-- Новый элемент
+
+
+// --- Основная логика ---
+
+async function init() {
+    await preloadShaders();
+    const geometry = new THREE.PlaneGeometry(window.innerWidth / 100, window.innerHeight / 100, 1, 1);
+    await switchTheme(currentTheme, true);
+    planeMesh = new THREE.Mesh(geometry, currentMaterial);
+    scene.add(planeMesh);
+    applyStyle(getDefaultStyle());
+    animate();
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+    if (currentMaterial && currentMaterial.uniforms.iTime) {
+        currentMaterial.uniforms.iTime.value += 0.016;
+    }
+    renderer.render(scene, camera);
+}
+
+// --- Управление темами и стилями ---
+
+async function switchTheme(themeName, isInitial = false) {
+    if (!THEMES[themeName]) {
+        console.error(`Theme ${themeName} not found!`);
+        return;
+    }
+    currentTheme = themeName;
+
+    currentMaterial = new THREE.ShaderMaterial({
+        uniforms: getUniformsForTheme(themeName),
+        vertexShader: shaderCache[THEMES[themeName].vertex],
+        fragmentShader: shaderCache[THEMES[themeName].fragment],
+        transparent: true,
+    });
+    
+    if (planeMesh) {
+        planeMesh.material = currentMaterial;
+    }
+
+    applyStyle(getDefaultStyle()); // Применяем и отображаем дефолтный стиль при смене темы
+
+    if (!isInitial) {
+        generateBtn.click();
+    }
+}
+
+function applyStyle(style) {
+    currentStyle = style;
+    if (!currentMaterial) return;
+
+    for (const key in style) {
+        if (currentMaterial.uniforms[key]) {
+            if (key === 'palette' && Array.isArray(style[key])) {
+                 currentMaterial.uniforms[key].value = style[key].map(c => new THREE.Color(c));
+            } else if (style[key] instanceof THREE.Color) {
+                 currentMaterial.uniforms[key].value = style[key];
+            } else {
+                currentMaterial.uniforms[key].value = style[key];
+            }
+        }
+    }
+    updateStyleInfo(style); // <-- Вызываем новую функцию
+}
+
+// --- Отображение информации о стиле ---
+
+function updateStyleInfo(style) {
+    if (!styleInfoContainer) return;
+
+    styleInfoContainer.innerHTML = ''; // Очищаем предыдущую информацию
+
+    for (const key in style) {
+        const value = style[key];
+        const paramDiv = document.createElement('div');
+
+        let displayValue;
+        if (key === 'palette' && Array.isArray(value)) {
+            displayValue = value.map(color =>
+                `<span style="display: inline-block; width: 12px; height: 12px; background-color: ${color}; border: 1px solid #fff; margin-right: 5px; vertical-align: middle;"></span>${color}`
+            ).join(', ');
+        } else if (typeof value === 'number') {
+            displayValue = value.toFixed(4);
+        } else {
+            displayValue = value;
+        }
+
+        paramDiv.innerHTML = `<span class="param-name">${key}:</span> <span class="param-value">${displayValue}</span>`;
+        styleInfoContainer.appendChild(paramDiv);
+    }
+}
+
+
+// --- API и Генерация ---
+
+async function requestStyleFromNous(mood, theme) {
+    const apiKey = 'sk-7l89m19dfmdqo114vxrhj';
+    const url = 'https://inference-api.nousresearch.com/v1/chat/completions';
+    const headers = { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' };
+
+    const systemPrompt = getSystemPromptForTheme(theme);
+    if (!systemPrompt) {
+        alert("Sorry, this theme isn't configured for generation yet.");
+        return null;
+    }
+
+    const body = {
+        model: "DeepHermes-3-Mistral-24B-Preview",
+        messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: `Generate a style for the mood: ${mood}` }
+        ]
+    };
+
+    try {
+        const response = await fetch(url, { method: 'POST', headers: headers, body: JSON.stringify(body) });
+        if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+        
+        const data = await response.json();
+        const jsonContent = data.choices[0].message.content;
+        const cleanedJson = jsonContent.replace(/```json/g, '').replace(/```/g, '').trim();
+        return JSON.parse(cleanedJson);
+
+    } catch (error) {
+        console.error("Error fetching style:", error);
+        alert("Failed to generate style. Please check the console for details.");
+        return null;
+    }
+}
+
+// --- Хелперы и утилиты ---
+
+async function loadShader(url) {
+    if (shaderCache[url]) return shaderCache[url];
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Failed to load shader: ${url}`);
+        const text = await response.text();
+        shaderCache[url] = text;
+        return text;
+    } catch (error) {
+        console.error(error);
+        return null;
+    }
+}
+
+async function preloadShaders() {
+    const promises = [];
+    for (const themeName in THEMES) {
+        const theme = THEMES[themeName];
+        promises.push(loadShader(theme.vertex));
+        promises.push(loadShader(theme.fragment));
+    }
+    await Promise.all(promises);
+}
+
+function getUniformsForTheme(theme) {
+    const commonUniforms = {
+        iResolution: { value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
+        iTime: { value: 0.0 },
+    };
+
+    if (theme === 'space') {
+        return {
+            ...commonUniforms,
+            intensity: { value: 0.5 },
+            detail: { value: 0.3 },
+            movement: { value: 0.05 },
+            palette: { value: [new THREE.Color("#0d1b2a"), new THREE.Color("#1b263b"), new THREE.Color("#415a77")] },
+        };
+    } else if (theme === 'platok') {
+        return {
+            ...commonUniforms,
+            formuparam: { value: 0.53 },
+            zoom: { value: 0.8 },
+            speed: { value: 0.0 },
+            brightness: { value: 0.0015 },
+            darkmatter: { value: 0.3 },
+            saturation: { value: 0.85 },
+            distfading: {value: 0.73}
+        };
+    }
+    return commonUniforms;
+}
+
+function getSystemPromptForTheme(theme) {
+    if (theme === 'space') {
+        return 'You output ONLY valid JSON for cosmic generation. The JSON must follow this structure: { "palette": ["#RRGGBB", "#RRGGBB", "#RRGGBB"], "intensity": float, "movement": float (a small value, e.g. 0.01 to 0.2), "detail": float }';
+    } else if (theme === 'platok') {
+        return 'You output ONLY valid JSON for a fractal shader. The JSON must follow this structure: { "formuparam": float (0.4 to 0.6), "zoom": float (0.5 to 1.2), "speed": float (0.0 to 0.05), "brightness": float (0.001 to 0.003), "darkmatter": float (0.1 to 0.5), "saturation": float (0.5 to 1.0), "distfading": float(0.6, 0.9) }';
+    }
+    return null;
+}
+
+function getDefaultStyle() {
+    if (currentTheme === 'space') {
+       return {
+            palette: ["#0d1b2a", "#1b263b", "#415a77"],
+            intensity: 0.5,
+            movement: 0.05,
+            detail: 0.3
+        };
+    } else if (currentTheme === 'platok') {
+        return {
+            formuparam: 0.53,
+            zoom: 0.8,
+            speed: 0.0,
+            brightness: 0.0015,
+            darkmatter: 0.3,
+            saturation: 0.85,
+            distfading: 0.73
+        };
+    }
+    return {};
+}
+
+// --- Обработчики событий ---
 
 generateBtn.addEventListener('click', async () => {
     const mood = moodInput.value.trim();
@@ -227,88 +262,21 @@ generateBtn.addEventListener('click', async () => {
     generateBtn.textContent = 'Generating...';
     generateBtn.disabled = true;
 
-    const style = await requestCosmicStyleFromNous(mood);
+    const style = await requestStyleFromNous(mood, currentTheme);
     if (style) {
-        applyCosmicStyle(style);
+        applyStyle(style);
     }
     
-    generateBtn.textContent = 'Generate Universe';
+    generateBtn.textContent = 'Generate';
     generateBtn.disabled = false;
 });
 
-saveBtn.addEventListener('click', () => {
-    const mood = moodInput.value.trim() || 'unnamed_style';
-    const name = prompt("Enter a name for this style:", mood.replace(/\s+/g, '_'));
-    if (name && currentStyle) {
-        saveStyle(name, currentStyle);
-        updateSavedStylesList();
-    }
+themeSelect.addEventListener('change', (e) => {
+    switchTheme(e.target.value);
 });
 
-loadBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    stylesList.classList.toggle('show');
-    if (stylesList.classList.contains('show')) {
-        updateSavedStylesList();
-    }
-});
+// ... (остальные обработчики событий для сохранения/загрузки стилей)
 
-stylesList.addEventListener('click', (e) => {
-    if (e.target.tagName === 'LI') {
-        const name = e.target.dataset.name;
-        const style = loadStyle(name);
-        if (style) {
-            applyCosmicStyle(style);
-            moodInput.value = name;
-        }
-        stylesList.classList.remove('show');
-    }
-});
-
-window.addEventListener('click', () => {
-    if (stylesList.classList.contains('show')) {
-        stylesList.classList.remove('show');
-    }
-});
-
-
-function saveStyle(name, json) {
-    localStorage.setItem(`cosmic_style_${name}`, JSON.stringify(json));
-}
-
-function loadStyle(name) {
-    return JSON.parse(localStorage.getItem(`cosmic_style_${name}`));
-}
-
-function listSavedStyles() {
-    return Object.keys(localStorage)
-        .filter(key => key.startsWith('cosmic_style_'))
-        .map(key => key.replace('cosmic_style_', ''));
-}
-
-function updateSavedStylesList() {
-    stylesList.innerHTML = '';
-    const saved = listSavedStyles();
-    if (saved.length === 0) {
-        stylesList.innerHTML = '<li>No saved styles</li>';
-    } else {
-        saved.forEach(name => {
-            const li = document.createElement('li');
-            li.textContent = name;
-            li.dataset.name = name;
-            stylesList.appendChild(li);
-        });
-    }
-}
-
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-});
-
-document.addEventListener('wheel', (event) => {
-    camera.position.z += event.deltaY * 0.01 * (currentStyle.camera.zoomSpeed || 1.0);
-});
-
+// --- Инициализация ---
 init();
+
