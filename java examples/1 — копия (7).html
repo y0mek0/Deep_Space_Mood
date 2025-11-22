@@ -1,0 +1,56 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"/><title>Black Hole (Three.js)</title>
+<style>body{margin:0;background:#000}canvas{display:block}</style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/three@0.154.0/build/three.min.js"></script>
+<script>
+const scene=new THREE.Scene(); const camera=new THREE.PerspectiveCamera(60,innerWidth/innerHeight,0.1,3000);
+const renderer=new THREE.WebGLRenderer({antialias:true}); renderer.setSize(innerWidth,innerHeight); document.body.appendChild(renderer.domElement);
+camera.position.z=200;
+
+// background stars (simple)
+const starsGeo = new THREE.BufferGeometry();
+const starCount = 10000;
+const positions = new Float32Array(starCount*3);
+for(let i=0;i<starCount;i++){
+  positions[i*3]=(Math.random()-0.5)*2000;
+  positions[i*3+1]=(Math.random()-0.5)*2000;
+  positions[i*3+2]=(Math.random()-0.5)*2000;
+}
+starsGeo.setAttribute('position', new THREE.BufferAttribute(positions,3));
+const starsMat = new THREE.PointsMaterial({color:0xaaaaaa, size:0.7});
+scene.add(new THREE.Points(starsGeo, starsMat));
+
+// black hole center (dark sphere)
+const bhGeom = new THREE.SphereGeometry(30, 32, 16);
+const bhMat = new THREE.MeshBasicMaterial({color:0x000000});
+const bh = new THREE.Mesh(bhGeom, bhMat);
+scene.add(bh);
+
+// accretion disk: thin torus with emissive map
+const disk = new THREE.Mesh(
+  new THREE.RingGeometry(40, 80, 128),
+  new THREE.MeshBasicMaterial({ color:0xff6600, side: THREE.DoubleSide, transparent:true, opacity:0.9 })
+);
+disk.rotation.x = Math.PI/2;
+scene.add(disk);
+
+// faux lens distortion: large transparent sprite with radial gradient texture
+function makeGradientTexture(){
+  const size=512; const can=document.createElement('canvas'); can.width=can.height=size; const ctx=can.getContext('2d');
+  const g=ctx.createRadialGradient(size/2,size/2,10,size/2,size/2,size/2);
+  g.addColorStop(0,'rgba(255,200,100,0.18)');
+  g.addColorStop(0.6,'rgba(0,0,0,0.0)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,size,size);
+  const tex=new THREE.CanvasTexture(can); return tex;
+}
+const spriteMat = new THREE.SpriteMaterial({map: makeGradientTexture(), blending: THREE.AdditiveBlending, transparent:true});
+const sprite = new THREE.Sprite(spriteMat); sprite.scale.set(400,400,1); scene.add(sprite);
+
+function animate(){ requestAnimationFrame(animate); disk.rotation.z += 0.01; sprite.rotation += 0.002; renderer.render(scene,camera); }
+animate();
+</script>
+</body>
+</html>

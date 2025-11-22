@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>p5 Starfield</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script>
+</head>
+<body>
+<script>
+let stars = [];
+
+function setup() {
+  createCanvas(windowWidth, windowHeight);
+  for (let i = 0; i < 800; i++) {
+    stars.push({
+      x: random(-width, width),
+      y: random(-height, height),
+      z: random(width),
+      pz: null
+    });
+  }
+}
+
+function draw() {
+  background(0);
+  translate(width/2, height/2);
+  for (let i = 0; i < stars.length; i++) {
+    let s = stars[i];
+    s.pz = s.pz || s.z;
+    s.z -= 10 * (1 + noise(i*0.01 + frameCount*0.001)); // скорость с небольшим шумом
+    if (s.z < 1) {
+      s.x = random(-width, width);
+      s.y = random(-height, height);
+      s.z = random(width);
+      s.pz = s.z;
+    }
+    let sx = (s.x / s.z) * width;
+    let sy = (s.y / s.z) * height;
+    let r = map(s.z, 0, width, 6, 0);
+    noStroke();
+    fill(255);
+    ellipse(sx, sy, r, r);
+    // след
+    let px = (s.x / s.pz) * width;
+    let py = (s.y / s.pz) * height;
+    stroke(255, map(s.z,0,width,200,20));
+    line(px, py, sx, sy);
+    s.pz = s.z;
+  }
+}
+
+function windowResized() {
+  resizeCanvas(windowWidth, windowHeight);
+}
+</script>
+</body>
+</html>

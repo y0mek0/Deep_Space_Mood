@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Генератор Космоса на Основе Настроения</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="ui-container">
+        <div id="input-container">
+            <input type="text" id="mood-input" placeholder="Enter your mood...">
+            <button id="generate-btn">Generate Universe</button>
+        </div>
+        <div id="controls-container">
+            <button id="save-style-btn">Save This Style</button>
+            <div id="load-styles-container">
+                <button id="load-styles-btn">Load Saved Styles &#9660;</button>
+                <ul id="saved-styles-list"></ul>
+            </div>
+        </div>
+    </div>
+    <canvas id="bg"></canvas>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

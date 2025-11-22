@@ -1,0 +1,126 @@
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #000;
+    color: #fff;
+    overflow: hidden; /* Это хорошо, предотвращает появление полос прокрутки у холста */
+}
+
+#bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw; /* Используем vw и vh для явного указания единиц области просмотра */
+    height: 100vh;
+    z-index: -1;
+}
+
+#ui-container {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%); /* Центрируем контейнер */
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    background: rgba(0, 0, 0, 0.6);
+    padding: 20px;
+    border-radius: 12px;
+    width: 90%; /* Используем процентную ширину */
+    max-width: 500px; /* Устанавливаем максимальную ширину для больших экранов */
+    box-sizing: border-box; /* Включаем padding в расчет ширины */
+}
+
+#input-container, #controls-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap; /* Разрешаем элементам переноситься на следующую строку */
+    justify-content: center; /* Центрируем элементы при переносе */
+}
+
+#mood-input {
+    flex-grow: 1; /* Разрешаем полю ввода расти и заполнять доступное пространство */
+    min-width: 180px; /* Предотвращаем его слишком сильное сжатие */
+    padding: 12px;
+    border: 1px solid #445577;
+    background-color: #112244;
+    color: #fff;
+    border-radius: 6px;
+    font-size: 16px;
+}
+
+button {
+    padding: 12px 18px;
+    border: none;
+    background-color: #8899FF;
+    color: #000;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+    flex-shrink: 0; /* Предотвращаем сжатие кнопок */
+}
+
+button:hover {
+    background-color: #aaccff;
+}
+
+#load-styles-container {
+    position: relative;
+}
+
+#saved-styles-list {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0; /* Заставляем его занимать всю ширину контейнера */
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid #445577;
+    border-radius: 6px;
+    list-style: none;
+    padding: 0;
+    margin: 8px 0 0;
+    max-height: 250px;
+    overflow-y: auto;
+    z-index: 20; /* Убеждаемся, что он находится над другими элементами интерфейса */
+}
+
+#saved-styles-list.show {
+    display: block;
+}
+
+#saved-styles-list li {
+    padding: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid #223355;
+}
+
+#saved-styles-list li:last-child {
+    border-bottom: none;
+}
+
+#saved-styles-list li:hover {
+    background-color: #223355;
+}
+
+/* Медиа-запрос для очень маленьких экранов для дальнейшей настройки макета */
+@media (max-width: 480px) {
+    #ui-container {
+        padding: 15px;
+        gap: 10px;
+    }
+
+    #input-container, #controls-container {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    #mood-input, button {
+        width: 100%; /* Делаем поле ввода и кнопки на всю ширину */
+        box-sizing: border-box; /* Убеждаемся, что padding включен в ширину */
+    }
+}

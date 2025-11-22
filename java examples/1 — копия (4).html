@@ -1,0 +1,47 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"/><title>Procedural Planet</title>
+<style>body{margin:0;background:#000;display:flex;align-items:center;justify-content:center;height:100vh}</style>
+</head>
+<body>
+<canvas id="c" width="512" height="512"></canvas>
+<script>
+const c=document.getElementById('c'), ctx=c.getContext('2d');
+const W=c.width, H=c.height, cx=W/2, cy=H/2, R=200;
+
+function rand(x,y){return (Math.sin(x*12.9898 + y*78.233) * 43758.5453) % 1;}
+function noise(x,y){
+  const xi=Math.floor(x), yi=Math.floor(y); const xf=x-xi, yf=y-yi;
+  const a=rand(xi,yi), b=rand(xi+1,yi), c2=rand(xi,yi+1), d=rand(xi+1,yi+1);
+  const u = xf*xf*(3-2*xf), v=yf*yf*(3-2*yf);
+  return a*(1-u)*(1-v) + b*u*(1-v) + c2*(1-u)*v + d*u*v;
+}
+function fbm(x,y){
+  let v=0, amp=0.5, f=1;
+  for(let i=0;i<5;i++){ v+= amp*noise(x*f,y*f); f*=2; amp*=0.5; }
+  return v;
+}
+
+for(let y=0;y<H;y++){
+  for(let x=0;x<W;x++){
+    const dx=x-cx, dy=y-cy;
+    const dist=Math.sqrt(dx*dx+dy*dy);
+    const i=(y*W+x)*4;
+    if(dist>R){ ctx.fillStyle='rgba(0,0,0,1)'; ctx.fillRect(x,y,1,1); continue;}
+    // generate terrain by latitude + noise
+    const lat = Math.acos(dy/(dist||1)); // rough
+    const n = fbm((cx+x)/50, (cy+y)/50);
+    // base color map (ocean + land)
+    const water = Math.max(0, 0.5 - (dist/R) + (n-0.5)*0.6);
+    let r,g,b;
+    if(water > 0.25) { r=20+water*40; g=60+water*80; b=120+water*120; } // ocean
+    else { r=80+ n*120; g=60+ n*80; b=30+ n*30; } // land
+    // lighting (simple)
+    const light = 0.6 + 0.4 * (dx / R);
+    ctx.fillStyle = rgb(${Math.floor(r*light)},${Math.floor(g*light)},${Math.floor(b*light)});
+    ctx.fillRect(x,y,1,1);
+  }
+}
+</script>
+</body>
+</html>

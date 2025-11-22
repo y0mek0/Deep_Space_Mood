@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"/><title>Spiral Galaxy</title>
+<style>body{margin:0;background:#000}canvas{display:block}</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const c=document.getElementById('c'), ctx=c.getContext('2d');
+function resize(){c.width=innerWidth; c.height=innerHeight;}
+addEventListener('resize',resize); resize();
+
+const particles=[];
+const N=3000;
+const centerX=c.width/2, centerY=c.height/2;
+for(let i=0;i<N;i++){
+  const r = Math.pow(Math.random(),0.8) * Math.min(c.width,c.height)*0.45;
+  const arm = (Math.random()<0.5?1:-1);
+  const angle = r*0.03 + (Math.random()*0.6 - 0.3) + arm * 2*Math.PI * Math.random();
+  particles.push({
+    r, angle,
+    speed: 0.0005 + Math.random()*0.002,
+    color: hsl(${200 + Math.random()*60}, ${50+Math.random()*50}%, ${40+Math.random()*30}%)
+  });
+}
+
+function draw(t){
+  ctx.fillStyle='rgba(0,0,0,0.12)'; ctx.fillRect(0,0,c.width,c.height);
+  for(let p of particles){
+    const a = p.angle + t * p.speed;
+    const x = centerX + Math.cos(a) * p.r;
+    const y = centerY + Math.sin(a) * p.r;
+    ctx.fillStyle = p.color;
+    ctx.fillRect(x, y, 1.2, 1.2);
+  }
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);
+</script>
+</body>
+</html>
