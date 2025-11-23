@@ -4,53 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Shader Composer</title>
-    <link rel="stylesheet" href="style.css?v=1.4">
+    <link rel="stylesheet" href="style.css?v=1.7">
 </head>
 <body>
     <canvas id="bg"></canvas>
 
+    <div class="mode-switcher">
+        <button id="basic-mode-btn" class="mode-btn">Basic</button>
+        <button id="test-mode-btn" class="mode-btn">Test</button>
+    </div>
+
     <div class="controls">
-        <!-- Выбор настроения -->
+        <!-- Группа, видимая во всех режимах -->
         <div class="control-group">
             <label for="mood-input">Mood:</label>
             <input type="text" id="mood-input" placeholder="e.g., epic, dreamy, melancholic...">
         </div>
 
-        <!-- Выбор темы (шейдера) -->
-        <div class="control-group">
+        <!-- Группы только для режима "Test" -->
+        <div class="control-group test-only">
             <label for="theme-select">Theme:</label>
-            <select id="theme-select">
-                <option value="space">Cosmic Nebula</option>
-                <option value="platok">Platok Fractal</option>
-                <option value="exotic_nebula">Exotic Nebula</option>
-                <option value="backbone">Organic Backbone</option>
-                <option value="galaxy">Galaxy</option>
-                <option value="gargantua">Gargantua</option>
-            </select>
+            <select id="theme-select"></select>
             <button id="theme-toggle-btn">ON</button>
         </div>
-
-        <!-- Выбор сохраненного стиля -->
-        <div class="control-group">
+        <div class="control-group test-only">
             <label for="saved-styles-select">Saved Styles:</label>
-            <select id="saved-styles-select">
-                <option value="">- No styles saved for this theme -</option>
-            </select>
+            <select id="saved-styles-select"></select>
         </div>
         
-        <!-- Кнопки управления -->
-        <div class="button-group">
+        <!-- Кнопки -->
+        <div class="control-group button-group">
             <button id="generate-btn">Generate New</button>
-            <button id="save-style-btn">Save Current Style</button>
-            <button id="delete-style-btn">Delete Selected Style</button>
+            <button id="save-style-btn" class="test-only">Save Current Style</button>
+            <button id="delete-style-btn" class="test-only">Delete Selected Style</button>
         </div>
-
     </div>
-    
-    <!-- Контейнер для параметров -->
-    <div id="style-info-container"></div>
+
+    <div id="style-info-container" class="test-only">
+        <!-- Информация о текущем стиле будет здесь -->
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="script.js"></script>
+    <script src="script.js?v=1.7"></script>
 </body>
 </html>
