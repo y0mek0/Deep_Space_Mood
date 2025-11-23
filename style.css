@@ -170,15 +170,18 @@ body.test-mode .param-name {
 }
 
 .param-value .color-chip {
-    display: inline-flex;
-    align-items: center;
+    display: inline-block; /* Treat as a single unbreakable block */
+    white-space: nowrap;   /* Ensure content within doesn't wrap */
     margin-right: 5px;
+    vertical-align: middle; /* Align nicely with the text */
 }
 .param-value .color-swatch {
     width: 12px;
     height: 12px;
     border: 1px solid #fff;
     margin-right: 5px;
+    display: inline-block; /* Ensure swatch is an inline block */
+    vertical-align: middle; /* Align with the text */
 }
 
 
