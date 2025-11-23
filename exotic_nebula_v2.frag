@@ -1,23 +1,17 @@
 
-/*by musk License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
-
-	I wanted to make it as exotic and colorful as possible 
-	without ruining the framerate too much. 
-
-	I'm not happy with the illumination but anything 
-	better hits the performance too hard.
-
-	Pause the shader and rotate it around with the mouse ;)
-
-	Soundtrack: https://www.youtube.com/watch?v=5mDwVSfY-EE
-
-*/
-
-// Uniforms from Three.js
+// Uniforms from Three.js & custom style uniforms
 uniform vec2 iResolution;
 uniform float iTime;
-uniform vec4 iMouse;
+uniform vec2 iMouse;
 uniform sampler2D iChannel0;
+
+// Custom uniforms for styling from script.js
+uniform vec3 palette[3];
+uniform float detail_scale;
+uniform float gamma;
+uniform float distortion;
+uniform float speed_multiplier;
+
 
 //2D texture based 4 component 1D, 2D, 3D noise
 vec4 noise(float p){return texture(iChannel0,vec2(p*float(1.0/256.0),.0));}
@@ -37,7 +31,8 @@ float t;
 //density function
 float density(vec3 p)
 {
-	vec4 d = noise(p*.5)*noise(p.xz*.044)*noise(p.xy*.26)*noise(p.yz*.21);
+	// Apply detail_scale to the main noise lookup
+	vec4 d = noise(p * .5 * detail_scale) * noise(p.xz*.044) * noise(p.xy*.26) * noise(p.yz*.21);
 	float fd = dot(d,vec4(1.4));
 	fd = fd*fd*fd*fd*fd;
 	
@@ -62,11 +57,12 @@ vec3 background2(vec3 d)
 
 void main()
 {
-    vec2 fragCoord = gl_FragCoord.xy;
-    t = iTime + noise(fragCoord.xy).y/(24.0-24.0/(iTime+1.0)) + toffs;
+    // Apply speed_multiplier to time
+    t = iTime * speed_multiplier + noise(gl_FragCoord.xy).y/(24.0-24.0/(iTime+1.0)) + toffs;
     
-     vec2 uv = fragCoord.xy / iResolution.yy -vec2(.9,.5);
-	vec2 m = iMouse.xy*8.0/ iResolution.yy;
+    vec2 uv = gl_FragCoord.xy / iResolution.yy -vec2(.9,.5);
+    // Use the vec2 iMouse uniform, which gets pixel coordinates from script.js
+	vec2 m = iMouse.xy*8.0/ iResolution.y;
 	//rotation matrix for the camera
 	mat3 rotmat = rotate_y((t-toffs)*.07+m.x)*rotate_x((t-toffs)*.031+m.y);
 	//p is ray position
@@ -75,7 +71,7 @@ void main()
 	//d is ray direction
 	vec3 d = normalize(vec3(uv*(sin(t*.17)*.2+0.8),1.0-length(uv)*.2));
 	d*=rotmat;
-	p+=d*noise(fragCoord.xy).x*.9;
+	p+=d*noise(gl_FragCoord.xy).x*.9;
 	
 	//some accumulators
 	float a = .0;
@@ -86,15 +82,19 @@ void main()
 	{
 		//move forward
 		p+=d*.9;
-		//space distort
-		vec3 n = noise(p.xz*.25+vec2(t*.1)).xyz*12.0*noise(p.zy*.1+vec2(t*.1)).xyz;
+		//space distort - apply distortion uniform
+		vec3 n = noise(p.xz*.25+vec2(t*.1)).xyz * distortion * noise(p.zy*.1+vec2(t*.1)).xyz;
 
 		float de = density(p+n);
 		a += de; // a is alpha, as the ray traverses the density function the
 		//pixel is more and more opaque
 		a = min(1.0,a); //a > 1.0 makes no sence and produces bugs
 		vec4 c2 = noise(p.yz*.03).xyzw;
-		vec3 c = c2.xyz*1.7;
+        
+        // Use the palette by mixing the 3 colors based on noise
+		vec3 c = mix(palette[0], palette[1], c2.x);
+        c = mix(c, palette[2], c2.y);
+		c *= 1.7; // Keep original intensity multiplier
 		
 		//lame illumiation
 		float occ = min((de-density(p+vec3(0.7+n))),1.0);
@@ -102,8 +102,7 @@ void main()
 		occ = min(occ,(de-density(p+vec3(5.7)+n)));
 		
 		color += max(.0,occ)*(1.0-a)*c;
-		if (a>1.0) break; //traversing beyond this point makes
-		//no sense because it's not visible anymore, so break
+		if (a>1.0) break; //traversing beyond this point makes no sense
 	}
 
 	//post processing + blending
@@ -115,10 +114,11 @@ void main()
 	color -= length(uv)*.12;
 	color = max(vec3(.0),color);
 	color  = mix(color,vec3(length(color)),length(color)*1.7-.4);
-	color  = pow(color,vec3(.6));
+    
+    // Apply gamma uniform
+	color  = pow(color,vec3(gamma));
 	
 	color *= 1.0+1.0/(t-toffs+.01);
 	
 	gl_FragColor = vec4(color,1.0);
-	
 }

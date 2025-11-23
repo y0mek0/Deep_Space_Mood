@@ -7,13 +7,14 @@ renderer.setSize(window.innerWidth, window.innerHeight);
 camera.position.setZ(5);
 
 // --- Глобальные переменные ---
-let currentThemeName = 'exotic_nebula'; // Устанавливаем по умолчанию для демонстрации
+let currentThemeName = 'space'; // Устанавливаем по умолчанию для демонстрации
 let currentTheme;
 let planeMesh; // Основной квад для вывода
 let currentStyle = {};
 const shaderCache = {};
 let allSavedStyles = {};
 let noiseTexture; // Переменная для хранения программно созданной текстуры шума
+let disabledThemes = {}; // Объект для хранения отключенных тем
 
 // --- Переменные для многопроходного рендеринга ---
 let isMultipass = false;
@@ -24,12 +25,13 @@ let bufferA_Mat, bufferB_Mat, bufferC_Mat, bufferD_Mat, imageMat;
 
 // --- Константы тем ---
 const THEMES = {
-    space: { type: 'singlepass', vertex: 'base_vertex.glsl', fragment: 'space.frag' },
-    platok: { type: 'singlepass', vertex: 'base_vertex.glsl', fragment: 'platok.frag' },
-    exotic_nebula: { type: 'singlepass', vertex: 'base_vertex.glsl', fragment: 'exotic_nebula_v2.frag' },
-    backbone: { type: 'singlepass', vertex: 'base_vertex.glsl', fragment: 'backbone.frag' },
-    galaxy: { type: 'singlepass', vertex: 'base_vertex.glsl', fragment: 'galaxy.frag' },
+    space: { name: "Cosmic Nebula", type: 'singlepass', vertex: 'base_vertex.glsl', fragment: 'space.frag' },
+    platok: { name: "Platok Fractal", type: 'singlepass', vertex: 'base_vertex.glsl', fragment: 'platok.frag' },
+    exotic_nebula: { name: "Exotic Nebula", type: 'singlepass', vertex: 'base_vertex.glsl', fragment: 'exotic_nebula_v2.frag' },
+    backbone: { name: "Organic Backbone", type: 'singlepass', vertex: 'base_vertex.glsl', fragment: 'backbone.frag' },
+    galaxy: { name: "Galaxy", type: 'singlepass', vertex: 'base_vertex.glsl', fragment: 'galaxy.frag' },
     gargantua: {
+        name: "Gargantua",
         type: 'multipass',
         passes: [
             { name: 'bufferA', shader: 'gargantua_buffer_a_v2.frag' },
@@ -49,6 +51,7 @@ const deleteStyleBtn = document.getElementById('delete-style-btn');
 const themeSelect = document.getElementById('theme-select');
 const savedStylesSelect = document.getElementById('saved-styles-select');
 const styleInfoContainer = document.getElementById('style-info-container');
+const themeToggleBtn = document.getElementById('theme-toggle-btn');
 
 // --- ФУНКЦИЯ ГЕНЕРАЦИИ ТЕКСТУРЫ ШУМА ---
 function generateNoiseTexture() {
@@ -80,6 +83,8 @@ async function init() {
     noiseTexture = generateNoiseTexture();
 
     loadAllStylesFromStorage();
+    loadDisabledThemes();
+    populateThemeSelect();
     await preloadShaders();
 
     const singlePassGeometry = new THREE.PlaneGeometry(window.innerWidth / 100, window.innerHeight / 100, 1, 1);
@@ -95,6 +100,7 @@ async function init() {
     themeSelect.value = currentThemeName;
 
     await switchTheme(currentThemeName);
+    updateToggleButton();
     addEventListeners();
     animate();
 }
@@ -150,6 +156,11 @@ function animate() {
 
 // --- Управление темами и стилями ---
 async function switchTheme(themeName) {
+    if (disabledThemes[themeName]) {
+        planeMesh.visible = false;
+        return;
+    }
+
     currentThemeName = themeName;
     currentTheme = THEMES[themeName];
 
@@ -371,7 +382,10 @@ function addEventListeners() {
         generateBtn.disabled = false;
     });
 
-    themeSelect.addEventListener('change', (e) => switchTheme(e.target.value));
+    themeSelect.addEventListener('change', (e) => {
+        switchTheme(e.target.value);
+        updateToggleButton();
+    });
     
     savedStylesSelect.addEventListener('change', (e) => {
         const styleName = e.target.value;
@@ -381,6 +395,7 @@ function addEventListeners() {
 
     saveStyleBtn.addEventListener('click', handleSaveStyle);
     deleteStyleBtn.addEventListener('click', handleDeleteStyle);
+    themeToggleBtn.addEventListener('click', toggleTheme);
 
     document.addEventListener('mousemove', (event) => {
         const mouseVec = new THREE.Vector2(event.clientX, window.innerHeight - event.clientY);
@@ -403,6 +418,50 @@ function addEventListeners() {
             if (planeMesh.material && planeMesh.material.uniforms.iResolution) { planeMesh.material.uniforms.iResolution.value = resVec; }
         }
     });
+}
+
+function populateThemeSelect() {
+    themeSelect.innerHTML = '';
+    for (const key in THEMES) {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = THEMES[key].name;
+        if (disabledThemes[key]) {
+            option.classList.add('disabled');
+            option.textContent += ' (OFF)';
+        }
+        themeSelect.appendChild(option);
+    }
+}
+
+function toggleTheme() {
+    const selectedTheme = themeSelect.value;
+    disabledThemes[selectedTheme] = !disabledThemes[selectedTheme];
+    saveDisabledThemes();
+    populateThemeSelect();
+    themeSelect.value = selectedTheme;
+    switchTheme(selectedTheme);
+    updateToggleButton();
+}
+
+function updateToggleButton() {
+    if (disabledThemes[currentThemeName]) {
+        themeToggleBtn.textContent = 'OFF';
+        themeToggleBtn.classList.remove('on');
+        themeToggleBtn.classList.add('off');
+    } else {
+        themeToggleBtn.textContent = 'ON';
+        themeToggleBtn.classList.remove('off');
+        themeToggleBtn.classList.add('on');
+    }
+}
+
+function saveDisabledThemes() {
+    localStorage.setItem('disabledThemes', JSON.stringify(disabledThemes));
+}
+
+function loadDisabledThemes() {
+    disabledThemes = JSON.parse(localStorage.getItem('disabledThemes')) || {};
 }
 
 // --- Инициализация ---

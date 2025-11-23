@@ -133,6 +133,10 @@ select:focus {
     input[type="text"] { width: 130px; }
     select { width: 140px; }
     .button-group button { font-size: 0.85em; padding: 7px 11px; }
+    #theme-toggle-btn {
+        font-size: 0.85em;
+        padding: 7px 11px;
+    }
 }
 
 /* --- АДАПТАЦИЯ: МАЛЕНЬКИЕ ЭКРАНЫ (<= 850px) --- */
@@ -146,6 +150,10 @@ select:focus {
     .button-group { gap: 6px; margin-left: 5px; }
     .button-group button { font-size: 0.8em; padding: 5px 8px; }
     #style-info-container { font-size: 0.75em; }
+    #theme-toggle-btn {
+        font-size: 0.8em;
+        padding: 5px 8px;
+    }
 }
 
 /* --- АДАПТАЦИЯ: ОЧЕНЬ МАЛЕНЬКИЕ ЭКРАНЫ (<= 650px) --- */
@@ -172,3 +180,41 @@ select:focus {
 /* Стили инфо-панели */
 #style-info-container .param-name { font-weight: bold; color: #9932cc; }
 #style-info-container .param-value { color: #eee; }
+
+/* Стили для кнопки включения/выключения темы */
+#theme-toggle-btn {
+    /* Match select element for consistent height */
+    padding: 8px 12px;
+    font-size: 0.9em;
+    border: 1px solid transparent;
+
+    border-radius: 6px;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    box-sizing: border-box;
+    width: auto;
+}
+
+#theme-toggle-btn.on {
+    background-color: #28a745;
+}
+
+#theme-toggle-btn.on:hover {
+    background-color: #218838;
+}
+
+#theme-toggle-btn.off {
+    background-color: #dc3545;
+}
+
+#theme-toggle-btn.off:hover {
+    background-color: #c82333;
+}
+
+/* Стили для отключенных тем в списке */
+#theme-select option.disabled {
+    color: #888;
+    font-style: italic;
+}
