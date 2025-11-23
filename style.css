@@ -1,181 +1,174 @@
-
+/* Общие стили */
 body {
     margin: 0;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #000;
-    color: #fff;
     overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: #fff;
+    background-color: #000;
 }
 
+/* Холст на заднем плане */
 #bg {
     position: fixed;
     top: 0;
     left: 0;
-    width: 100vw;
-    height: 100vh;
+    width: 100%;
+    height: 100%;
     z-index: -1;
 }
 
-#ui-container {
+/* --- СТИЛИ ДЛЯ БОЛЬШИХ ЭКРАНОВ (>= 1101px) --- */
+
+/* Контейнер для элементов управления */
+.controls {
     position: absolute;
-    top: 20px;
+    top: 15px;
     left: 50%;
     transform: translateX(-50%);
-    z-index: 10;
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    background: rgba(0, 0, 0, 0.6);
-    padding: 20px;
+    padding: 10px 15px;
+    background-color: rgba(15, 15, 20, 0.8);
     border-radius: 12px;
-    width: 90%;
-    max-width: 500px;
-    box-sizing: border-box;
-}
-
-#input-container, #controls-container {
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    box-shadow: 0 6px 24px 0 rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: flex;
-    align-items: center;
-    gap: 15px; /* Немного увеличим разрыв для нового элемента */
-    flex-wrap: wrap;
+    flex-direction: row; 
+    flex-wrap: wrap; 
     justify-content: center;
+    align-items: center;
+    gap: 15px; 
+    width: auto; 
+    max-width: 95%;
+    z-index: 10;
+    transition: all 0.2s ease-in-out;
 }
 
-#mood-input {
-    flex-grow: 1;
-    min-width: 180px;
-    padding: 12px;
-    border: 1px solid #445577;
-    background-color: #112244;
-    color: #fff;
-    border-radius: 6px;
-    font-size: 16px;
-}
-
-button, #theme-select {
-    padding: 12px 18px;
-    border: 1px solid #445577;
-    background-color: #1c2b4a;
-    color: #fff;
-    border-radius: 6px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-button {
-    background-color: #8899FF;
-    color: #000;
-    border: none;
-    flex-shrink: 0;
-}
-
-button:hover {
-    background-color: #aaccff;
-}
-
-#theme-selector {
+/* Группы управления (лейбл + инпут) */
+.control-group {
     display: flex;
+    flex-direction: row; 
     align-items: center;
     gap: 8px;
 }
 
-#theme-select:hover {
-    background-color: #2a3f6a;
+.control-group label {
+    font-weight: bold;
+    font-size: 0.9em;
+    color: rgba(255, 255, 255, 0.8);
+    white-space: nowrap; 
+    transition: font-size 0.2s ease-in-out;
 }
 
-
-#load-styles-container {
-    position: relative;
-}
-
-#saved-styles-list {
-    display: none;
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    background: rgba(0, 0, 0, 0.85);
-    border: 1px solid #445577;
+/* Стили для инпутов и селектов */
+input[type="text"],
+select {
+    padding: 8px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.25);
+    background-color: rgba(0, 0, 0, 0.4);
     border-radius: 6px;
-    list-style: none;
-    padding: 0;
-    margin: 8px 0 0;
-    max-height: 250px;
-    overflow-y: auto;
-    z-index: 20;
-}
-
-#saved-styles-list.show {
-    display: block;
-}
-
-#saved-styles-list li {
-    padding: 12px;
-    cursor: pointer;
-    border-bottom: 1px solid #223355;
-}
-
-#saved-styles-list li:last-child {
-    border-bottom: none;
-}
-
-#saved-styles-list li:hover {
-    background-color: #223355;
-}
-
-#style-info-container {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: rgba(0, 0, 0, 0.7);
     color: #fff;
-    padding: 15px;
+    font-size: 0.9em;
     box-sizing: border-box;
-    z-index: 5;
+    transition: all 0.2s ease-in-out;
+}
+
+input[type="text"] { width: 150px; }
+select { width: 160px; }
+
+select#saved-styles-select:disabled { color: #888; }
+
+input[type="text"]:focus,
+select:focus {
+    outline: none;
+    border-color: #8a2be2;
+    box-shadow: 0 0 5px rgba(138, 43, 226, 0.5);
+}
+
+/* Группа для кнопок */
+.button-group {
+    display: flex;
+    flex-direction: row; 
+    gap: 10px;
+    margin-left: 10px; 
+}
+
+.button-group button {
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: bold;
+    font-size: 0.9em;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    width: auto;
+}
+
+/* Контейнер для информации о стиле (ВНИЗУ) */
+#style-info-container {
+    position: fixed;
+    bottom: 15px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 15px;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 10px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
     text-align: center;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 14px;
-    border-top: 1px solid #445577;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 20px;
+    font-size: 0.85em;
+    width: auto;
+    max-width: 90%;
+    z-index: 10;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
-#style-info-container div {
-    display: inline-block;
-    margin: 5px 15px;
+/* --- АДАПТАЦИЯ: СРЕДНИЕ ЭКРАНЫ (<= 1100px) --- */
+@media (max-width: 1100px) {
+    .controls { gap: 10px; padding: 8px 12px; }
+    .control-group label { font-size: 0.85em; }
+    input[type="text"], select { font-size: 0.85em; padding: 7px 9px; }
+    input[type="text"] { width: 130px; }
+    select { width: 140px; }
+    .button-group button { font-size: 0.85em; padding: 7px 11px; }
 }
 
-#style-info-container .param-name {
-    font-weight: bold;
-    color: #8899FF;
+/* --- АДАПТАЦИЯ: МАЛЕНЬКИЕ ЭКРАНЫ (<= 850px) --- */
+@media (max-width: 850px) {
+    .controls { gap: 8px; padding: 6px 8px; }
+    .control-group { gap: 5px; }
+    .control-group label { font-size: 0.8em; }
+    input[type="text"], select { font-size: 0.8em; padding: 5px 7px; }
+    input[type="text"] { width: 110px; }
+    select { width: 120px; }
+    .button-group { gap: 6px; margin-left: 5px; }
+    .button-group button { font-size: 0.8em; padding: 5px 8px; }
+    #style-info-container { font-size: 0.75em; }
 }
 
-#style-info-container .param-value {
-    color: #aaccff;
+/* --- АДАПТАЦИЯ: ОЧЕНЬ МАЛЕНЬКИЕ ЭКРАНЫ (<= 650px) --- */
+/* Здесь могут начаться переносы строк, это нормально */
+@media (max-width: 650px) {
+    input[type="text"] { width: 90px; }
+    select { width: 100px; }
 }
 
-@media (max-width: 480px) {
-    #ui-container {
-        padding: 15px;
-        gap: 10px;
-    }
 
-    #input-container, #controls-container {
-        flex-direction: column;
-        width: 100%;
-    }
+/* Цвета кнопок */
+#generate-btn { background-color: #8a2be2; }
+#generate-btn:hover { background-color: #9932cc; }
+#generate-btn:disabled { background-color: #555; cursor: not-allowed; }
 
-    #mood-input, button, #theme-selector {
-        width: 100%;
-        box-sizing: border-box;
-    }
-    
-    #theme-select {
-        flex-grow: 1;
-    }
-}
+#save-style-btn { background-color: #3a7ca5; }
+#save-style-btn:hover { background-color: #4a9dcf; }
+
+#delete-style-btn { background-color: #d9534f; }
+#delete-style-btn:hover { background-color: #e4726f; }
+#delete-style-btn:disabled { background-color: #555; cursor: not-allowed; }
+
+
+/* Стили инфо-панели */
+#style-info-container .param-name { font-weight: bold; color: #9932cc; }
+#style-info-container .param-value { color: #eee; }

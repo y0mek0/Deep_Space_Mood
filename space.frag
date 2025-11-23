@@ -1,8 +1,9 @@
 
 varying vec2 vUv;
-uniform float time;
+uniform float iTime;
 uniform float intensity;
 uniform float detail;
+uniform float movement;
 uniform vec3 palette[3];
 
 // 2D Noise function by Ian McEwan, ported to GLSL
@@ -32,7 +33,8 @@ float snoise(vec2 v) {
 }
 
 void main() {
-    vec2 scrollingUv = vec2(vUv.x + time * 0.1, vUv.y);
+    // FIX: Using the 'movement' uniform now instead of a hardcoded value
+    vec2 scrollingUv = vec2(vUv.x + iTime * movement, vUv.y);
     float n = snoise(scrollingUv * detail * 5.0);
 
     n = (n + 1.0) / 2.0;

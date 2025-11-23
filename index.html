@@ -1,41 +1,55 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Генератор Космоса на Основе Настроения</title>
-    <link rel="stylesheet" href="style.css">
+    <title>AI Shader Composer</title>
+    <link rel="stylesheet" href="style.css?v=1.3">
 </head>
 <body>
-    <div id="ui-container">
-        <div id="input-container">
-            <input type="text" id="mood-input" placeholder="Enter your mood...">
-            <button id="generate-btn">Generate</button>
-        </div>
-        <div id="controls-container">
-            <div id="theme-selector">
-                <label for="theme-select">Theme:</label>
-                <select id="theme-select">
-                    <option value="space" selected>Космос</option>
-                    <option value="platok">Платок</option>
-                    <option value="exotic_nebula">Exotic Nebula</option>
-                    <option value="backbone">Backbone</option>
-                </select>
-            </div>
-            <button id="save-style-btn">Save Style</button>
-            <div id="load-styles-container">
-                <button id="load-styles-btn">Load Styles &#9660;</button>
-                <ul id="saved-styles-list"></ul>
-            </div>
-        </div>
-    </div>
-
-    <div id="style-info-container"></div>
-
     <canvas id="bg"></canvas>
 
+    <div class="controls">
+        <!-- Выбор настроения -->
+        <div class="control-group">
+            <label for="mood-input">Mood:</label>
+            <input type="text" id="mood-input" placeholder="e.g., epic, dreamy, melancholic...">
+        </div>
+
+        <!-- Выбор темы (шейдера) -->
+        <div class="control-group">
+            <label for="theme-select">Theme:</label>
+            <select id="theme-select">
+                <option value="space">Cosmic Nebula</option>
+                <option value="platok">Platok Fractal</option>
+                <option value="exotic_nebula">Exotic Nebula</option>
+                <option value="backbone">Organic Backbone</option>
+                <option value="galaxy">Galaxy</option>
+                <option value="gargantua">Gargantua</option>
+            </select>
+        </div>
+
+        <!-- Выбор сохраненного стиля -->
+        <div class="control-group">
+            <label for="saved-styles-select">Saved Styles:</label>
+            <select id="saved-styles-select">
+                <option value="">- No styles saved for this theme -</option>
+            </select>
+        </div>
+        
+        <!-- Кнопки управления -->
+        <div class="button-group">
+            <button id="generate-btn">Generate New</button>
+            <button id="save-style-btn">Save Current Style</button>
+            <button id="delete-style-btn">Delete Selected Style</button>
+        </div>
+
+    </div>
+    
+    <!-- Контейнер для параметров -->
+    <div id="style-info-container"></div>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/simplex-noise/2.4.0/simplex-noise.min.js"></script>
     <script src="script.js"></script>
 </body>
 </html>
