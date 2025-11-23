@@ -168,7 +168,7 @@ async function switchTheme(themeName) {
         isMultipass = true;
         planeMesh.visible = false;
 
-        const rtOptions = { minFilter: THREE.LinearFilter, magFilter: THREE.NearestFilter, format: THREE.RGBAFormat, type: THREE.FloatType };
+        const rtOptions = { minFilter: THREE.LinearFilter, magFilter: THREE.LinearFilter, format: THREE.RGBAFormat, type: THREE.FloatType };
         if (!bufferA_RT) {
             bufferA_RT = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, rtOptions);
             bufferA_prev_RT = new THREE.WebGLRenderTarget(window.innerWidth, window.innerHeight, rtOptions);
