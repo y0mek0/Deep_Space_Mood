@@ -1,42 +1,86 @@
-# Interactive Space Generator
+# Deep Space Mood
 
-This project is a web application that generates an interactive 3D space visualization based on a user's mood description. It uses the Nous API to create unique visual styles and the Three.js library for rendering.
+Version: 0.2.1
 
-## How to Run the Project
+This project generates dynamic, cosmic-themed visuals in real-time based on a user's mood. It uses a Three.js frontend for rendering and a Python (Flask) backend to securely communicate with the Nous Research API for style generation.
 
-1.  **Reload the IDX Environment**: After all the files are created in your environment, a notification will appear asking you to reload to apply the changes from `.idx/dev.nix`. Click **"Reload"**. This will install `Node.js`, `Python`, and the `Caddy` web server.
+## Project Structure
 
-2.  **Open the Preview**: After the environment reloads, a preview tab should automatically open on the right side of the IDE. Caddy will start the web server and display `index.html`.
+- `index.html`: The main HTML file.
+- `script.js`: The core frontend logic for Three.js, UI, and communication with the backend.
+- `style.css`: Styles for the user interface.
+- `app.py`: The Flask backend server. It provides an API endpoint (`/api/generate`) that securely queries the Nous API.
+- `requirements.txt`: A list of Python dependencies required for the backend.
+- `gunicorn_config.py`: Configuration for the Gunicorn web server used in production.
+- `shaders/`: GLSL shader files that create the visuals.
 
-3.  **Start Generating**:
-    *   Enter a mood in the text field (e.g., `calm and peaceful` or `energetic and chaotic`).
-    *   Click the **"Generate Universe"** button. The application will send a request to the Nous API and use the received JSON to create the visualization.
+## Running the Project Locally
 
-## Features
+### Prerequisites
 
-*   **Mood-Based Generation**: Use any text description to create a unique space scene.
-*   **Interactive Controls**:
-    *   **Camera Rotation**: The scene rotates slowly automatically.
-    *   **Zoom**: Use the mouse wheel to zoom in and out.
-*   **Save and Load Styles**:
-    *   Click **"Save This Style"** to save the current generated configuration to your browser's local storage.
-    *   Click **"Load Saved Styles"** to see a list of saved presets and load any of them.
+- Python 3
+- `pip` (Python package installer)
 
-## File Structure
+### 1. Set Up the Environment
 
-*   `index.html`: The main HTML file.
-*   `style.css`: Styles for the interface.
-*   `script.js`: The main application logic, including interaction with Three.js and the Nous API.
-*   `sentient_agent.py`: A Python script illustrating a potential multi-agent architecture (see note below).
-*   `.idx/dev.nix`: The Nix configuration file for the development environment.
-*   `*.frag`: GLSL fragment shader files used for different visual themes.
+First, install the required Python packages:
 
-## Important Note on API Keys
+```bash
+pip install -r requirements.txt
+```
 
-In `script.js` and `sentient_agent.py`, your Nous API key is **embedded directly in the code**. This was done for simplicity of demonstration.
+### 2. Set the API Key
 
-**Never expose API keys in client-side code in production applications!** For real projects, use a server-side proxy or cloud functions to manage keys securely.
+This project requires an API key from Nous Research. The application is configured to read this key from an environment variable for security.
 
-## Note on Sentient AGI
+**Do NOT hardcode the key in the source code.**
 
-The `sentient_agent.py` file is a theoretical example. It does not run in the current configuration but serves to illustrate the architecture of a multi-agent system, as requested. To make it work, you would need the actual `sentient-agent` library and its dependencies.
+Set the environment variable in your terminal:
+
+- **macOS / Linux:**
+  ```bash
+  export NOUS_API_KEY='your-secret-api-key-here'
+  ```
+- **Windows (Command Prompt):**
+  ```bash
+  set NOUS_API_KEY=your-secret-api-key-here
+  ```
+- **Windows (PowerShell):**
+  ```bash
+  $env:NOUS_API_KEY='your-secret-api-key-here'
+  ```
+
+### 3. Run the Server
+
+Start the Flask development server:
+
+```bash
+gunicorn --config gunicorn_config.py app:app
+```
+
+The application will be available at `http://127.0.0.1:8080`.
+
+## Deployment (e.g., on Render.com)
+
+This project is ready to be deployed as a **Web Service**.
+
+### 1. Connect Your Git Repository
+
+Connect your GitHub repository to Render.
+
+### 2. Service Configuration
+
+Use the following settings during creation:
+
+- **Environment:** `Python`
+- **Build Command:** `pip install -r requirements.txt`
+- **Start Command:** `gunicorn --config gunicorn_config.py app:app`
+
+### 3. Add Secret Environment Variable
+
+In your service's dashboard, go to the **Environment** tab and add a new **Secret File** or **Environment Variable**:
+
+- **Key:** `NOUS_API_KEY`
+- **Value:** `your-secret-api-key-here`
+
+Render will automatically deploy your application. The `gunicorn_config.py` file ensures it runs correctly in a production environment.
