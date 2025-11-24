@@ -17,7 +17,6 @@ Temporal AA for a smooth image. Temporal accumulation is disabled while moving t
 
 const vec3 MainColor = vec3(1.0);
 
-//noise code by iq
 float noise( in vec3 x )
 {
     vec3 p = floor(x);

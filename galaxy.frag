@@ -1,9 +1,3 @@
-
-// By Jared Berghold 2022 (https://www.jaredberghold.com/)
-// Based on the "Simplicity Galaxy" shader by CBS (https://www.shadertoy.com/view/MslGWN) 
-// The nebula effect is based on the kaliset fractal (https://softologyblog.wordpress.com/2011/05/04/kalisets-and-hybrid-ducks/)
-// --- ADAPTED FOR AI GENERATION ---
-
 // --- UNIFORMS --- 
 uniform vec2 iResolution;
 uniform float iTime;

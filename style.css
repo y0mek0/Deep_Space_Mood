@@ -30,6 +30,22 @@ canvas#bg {
   z-index: -1;
 }
 
+/* --- Site Logo (Top Center) --- */
+.site-logo {
+    position: fixed;
+    top: 20px; 
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+    z-index: 1000;
+    font-size: 32px; 
+    font-weight: 700;
+    letter-spacing: 2px;
+    opacity: 0.9;
+    color: white;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+}
+
 /* --- Controls Container --- */
 .controls {
   position: fixed;
@@ -43,10 +59,10 @@ canvas#bg {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-wrap: wrap;
-  align-items: center; /* Центрирование по вертикали */
+  align-items: center;
   gap: 20px;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  max-width: 95vw; /* Чтобы не вылезало на мобильных */
+  max-width: 95vw;
   justify-content: center;
 }
 
@@ -87,20 +103,14 @@ body.test-mode select:focus {
   box-shadow: 0 0 5px var(--test-mode-color);
 }
 
-/* СТИЛЬ ДЛЯ СЕЛЕКТА РАЗРЕШЕНИЯ, чтобы он был как инпут */
 #res-select {
-    /* Используем те же переменные, что и для input[type="text"] */
     background-color: var(--input-bg-color);
     color: var(--text-color);
     border: 1px solid var(--input-border-color);
     border-radius: 8px;
-    
-    /* Важно: делаем высоту и паддинги такими же, как у инпута */
     padding: 9px 12px; 
     height: auto;      
     font-size: 14px;
-    
-    /* Стилизация выпадающей стрелки */
     appearance: none;
     -webkit-appearance: none;
     -moz-appearance: none;
@@ -112,7 +122,6 @@ body.test-mode select:focus {
     min-width: 140px;
 }
 
-/* Фокус для селекта разрешения */
 body.basic-mode #res-select:focus {
     outline: none;
     border-color: var(--basic-mode-color);
@@ -139,9 +148,7 @@ button {
   white-space: nowrap;
 }
 
-button:active {
-    transform: scale(0.98);
-}
+button:active { transform: scale(0.98); }
 
 button:disabled {
     background-color: var(--disabled-color) !important;
@@ -149,44 +156,19 @@ button:disabled {
     opacity: 0.7;
 }
 
-/* --- Mode-specific Button Colors --- */
-body.basic-mode .button-group button {
-    background-color: var(--basic-mode-color);
-}
-body.basic-mode .button-group button:hover {
-    background-color: var(--basic-mode-hover-color);
-}
+body.basic-mode .button-group button { background-color: var(--basic-mode-color); }
+body.basic-mode .button-group button:hover { background-color: var(--basic-mode-hover-color); }
 
-body.test-mode .controls button {
-    background-color: var(--test-mode-color);
-}
-body.test-mode .controls button:hover {
-    background-color: var(--test-mode-hover-color);
-}
+body.test-mode .controls button { background-color: var(--test-mode-color); }
+body.test-mode .controls button:hover { background-color: var(--test-mode-hover-color); }
 
-/* --- Toggle Button (ON/OFF) --- */
-#theme-toggle-btn {
-    width: 50px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 9px 0;
-}
+#theme-toggle-btn { width: 50px; font-weight: bold; display: flex; align-items: center; justify-content: center; padding: 9px 0; }
 
-body.test-mode #theme-toggle-btn.on {
-    background-color: var(--test-mode-color);
-}
-body.test-mode #theme-toggle-btn.on:hover {
-    background-color: var(--test-mode-hover-color);
-}
+body.test-mode #theme-toggle-btn.on { background-color: var(--test-mode-color); }
+body.test-mode #theme-toggle-btn.on:hover { background-color: var(--test-mode-hover-color); }
 
-#theme-toggle-btn.off {
-    background-color: var(--button-off-bg) !important;
-}
-#theme-toggle-btn.off:hover {
-    background-color: var(--button-off-hover-bg) !important;
-}
+#theme-toggle-btn.off { background-color: var(--button-off-bg) !important; }
+#theme-toggle-btn.off:hover { background-color: var(--button-off-hover-bg) !important; }
 
 /* --- Style Info Box (Test Mode) --- */
 #style-info-container {
@@ -205,29 +187,13 @@ body.test-mode #theme-toggle-btn.on:hover {
   z-index: 100;
 }
 
-/* Info Colors */
 body.basic-mode .param-name { font-weight: bold; color: var(--basic-mode-color); }
 body.test-mode .param-name { font-weight: bold; color: var(--test-mode-color); }
 
 .param-value { line-height: 1.6; }
 
-.param-value .color-chip {
-    display: inline-flex;
-    align-items: center;
-    white-space: nowrap;
-    margin-right: 5px;
-    background: rgba(0,0,0,0.2);
-    padding: 2px 6px;
-    border-radius: 4px;
-    margin-bottom: 2px;
-}
-.param-value .color-swatch {
-    width: 10px;
-    height: 10px;
-    border: 1px solid #fff;
-    margin-right: 5px;
-    display: inline-block;
-}
+.param-value .color-chip { display: inline-flex; align-items: center; white-space: nowrap; margin-right: 5px; background: rgba(0,0,0,0.2); padding: 2px 6px; border-radius: 4px; margin-bottom: 2px; }
+.param-value .color-swatch { width: 10px; height: 10px; border: 1px solid #fff; margin-right: 5px; display: inline-block; }
 
 /* --- Mode Switcher (Top Left) --- */
 .mode-switcher {
@@ -243,29 +209,33 @@ body.test-mode .param-name { font-weight: bold; color: var(--test-mode-color); }
     z-index: 100;
 }
 
-.mode-btn {
-    padding: 8px 16px;
-    border: none;
-    background-color: transparent;
-    color: white;
-    cursor: pointer;
-    font-size: 14px;
-    font-weight: 500;
-    border-radius: 7px;
-    transition: all 0.3s;
-    opacity: 0.6;
-}
+.mode-btn { padding: 8px 16px; border: none; background-color: transparent; color: white; cursor: pointer; font-size: 14px; font-weight: 500; border-radius: 7px; transition: all 0.3s; opacity: 0.6; }
 
 .mode-btn:hover { opacity: 0.9; }
 
-.mode-btn.active {
-    opacity: 1;
-    transform: scale(1.02);
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-}
+.mode-btn.active { opacity: 1; transform: scale(1.02); box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
 #basic-mode-btn.active { background-color: var(--basic-mode-color); }
 #test-mode-btn.active { background-color: var(--test-mode-color); }
+
+/* --- Copyright/Social (Bottom Right) --- */
+.copyright-social {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    opacity: 0.6;
+    z-index: 100;
+}
+
+.copyright-social .watermark { font-size: 13px; color: #999; font-weight: 500; }
+
+.copyright-social .twitter-icon { width: 18px; height: 18px; color: #fff; transition: color 0.3s; }
+
+.copyright-social a:hover .twitter-icon { color: var(--test-mode-hover-color); }
+
 
 /* --- Visibility Utility --- */
 body.basic-mode .test-only { display: none !important; }

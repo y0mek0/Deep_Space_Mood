@@ -1,45 +1,42 @@
-# Генератор Интерактивного Космоса
+# Interactive Space Generator
 
-Этот проект представляет собой веб-приложение, которое генерирует интерактивную 3D-визуализацию космоса на основе текстового описания настроения пользователя. Для создания уникальных визуальных стилей используется Nous API, а для рендеринга — библиотека Three.js.
+This project is a web application that generates an interactive 3D space visualization based on a user's mood description. It uses the Nous API to create unique visual styles and the Three.js library for rendering.
 
-## Как запустить проект
+## How to Run the Project
 
-1.  **Перезагрузите среду IDX**: После создания всех файлов в вашей среде появится уведомление с предложением перезагрузить ее, чтобы применить изменения, внесенные в `.idx/dev.nix`. Нажмите **"Reload"**. Это установит `Node.js`, `Python` и веб-сервер `Caddy`.
+1.  **Reload the IDX Environment**: After all the files are created in your environment, a notification will appear asking you to reload to apply the changes from `.idx/dev.nix`. Click **"Reload"**. This will install `Node.js`, `Python`, and the `Caddy` web server.
 
-2.  **Откройте предварительный просмотр**: После перезагрузки среды в правой части IDE должна автоматически открыться вкладка предварительного просмотра. Caddy запустит веб-сервер и отобразит `index.html`.
+2.  **Open the Preview**: After the environment reloads, a preview tab should automatically open on the right side of the IDE. Caddy will start the web server and display `index.html`.
 
-3.  **Начните генерацию**: 
-    *   Введите настроение в текстовое поле (например, `calm and peaceful` или `energetic and chaotic`).
-    *   Нажмите кнопку **"Generate Universe"**. Приложение отправит запрос к Nous API и применит полученный JSON для создания визуализации.
+3.  **Start Generating**:
+    *   Enter a mood in the text field (e.g., `calm and peaceful` or `energetic and chaotic`).
+    *   Click the **"Generate Universe"** button. The application will send a request to the Nous API and use the received JSON to create the visualization.
 
-## Возможности
+## Features
 
-*   **Генерация на основе настроения**: Используйте любое текстовое описание для создания уникальной космической сцены.
-*   **Интерактивное управление**:
-    *   **Вращение камеры**: Сцена медленно вращается автоматически.
-    *   **Масштабирование**: Используйте колесо мыши для приближения и удаления.
-*   **Сохранение и загрузка стилей**: 
-    *   Нажмите **"Save This Style"**, чтобы сохранить текущую сгенерированную конфигурацию в локальное хранилище браузера.
-    *   Нажмите **"Load Saved Styles"**, чтобы увидеть список сохраненных пресетов и загрузить любой из них.
+*   **Mood-Based Generation**: Use any text description to create a unique space scene.
+*   **Interactive Controls**:
+    *   **Camera Rotation**: The scene rotates slowly automatically.
+    *   **Zoom**: Use the mouse wheel to zoom in and out.
+*   **Save and Load Styles**:
+    *   Click **"Save This Style"** to save the current generated configuration to your browser's local storage.
+    *   Click **"Load Saved Styles"** to see a list of saved presets and load any of them.
 
-## Структура файлов
+## File Structure
 
-*   **`.idx/dev.nix`**: Файл конфигурации среды Firebase Studio. Он настраивает необходимые пакеты (`nodejs_20`, `python3`, `caddy`) и настраивает предварительный просмотр веб-приложения.
-*   **`index.html`**: Основная HTML-структура страницы, содержащая UI-элементы и холст для Three.js.
-*   **`style.css`**: CSS-стили для пользовательского интерфейса.
-*   **`script.js`**: Основной файл JavaScript, который управляет:
-    *   Рендерингом Three.js (звезды, туманности).
-    *   Взаимодействием с пользовательским интерфейсом.
-    *   Вызовами Nous API для получения стилей.
-    *   Логикой сохранения и загрузки в `localStorage`.
-*   **`sentient_agent.py`**: Концептуальный пример Python-скрипта, демонстрирующий, как можно было бы построить многоагентную систему для обработки логики на стороне сервера.
+*   `index.html`: The main HTML file.
+*   `style.css`: Styles for the interface.
+*   `script.js`: The main application logic, including interaction with Three.js and the Nous API.
+*   `sentient_agent.py`: A Python script illustrating a potential multi-agent architecture (see note below).
+*   `.idx/dev.nix`: The Nix configuration file for the development environment.
+*   `*.frag`: GLSL fragment shader files used for different visual themes.
 
-## ⚠️ Важное замечание о безопасности API-ключа
+## Important Note on API Keys
 
-В файле `script.js` и `sentient_agent.py` ваш API-ключ Nous **встроен непосредственно в код**. Это было сделано для простоты демонстрации.
+In `script.js` and `sentient_agent.py`, your Nous API key is **embedded directly in the code**. This was done for simplicity of demonstration.
 
-**Никогда не размещайте API-ключи в открытом доступе в клиентском коде в производственных приложениях!** Для реальных проектов используйте серверный прокси или облачные функции для безопасного управления ключами.
+**Never expose API keys in client-side code in production applications!** For real projects, use a server-side proxy or cloud functions to manage keys securely.
 
-## Заметка о Sentient AGI
+## Note on Sentient AGI
 
-Файл `sentient_agent.py` является теоретическим примером. Он не выполняется в текущей конфигурации, а служит для иллюстрации архитектуры многоагентной системы, как было запрошено. Для его работы потребуется реальная библиотека `sentient-agent` и ее зависимости.
+The `sentient_agent.py` file is a theoretical example. It does not run in the current configuration but serves to illustrate the architecture of a multi-agent system, as requested. To make it work, you would need the actual `sentient-agent` library and its dependencies.
