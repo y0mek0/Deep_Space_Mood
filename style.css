@@ -1,16 +1,18 @@
 :root {
   --main-bg-color: #0d1b2a;
-  --control-bg-color: rgba(27, 38, 59, 0.8);
+  --control-bg-color: rgba(27, 38, 59, 0.9);
   --text-color: #e0e0e0;
   --disabled-color: #555;
   --input-bg-color: #1b263b;
   --input-border-color: #415a77;
   --button-off-bg: #c23b22;
   --button-off-hover-bg: #d9534f;
-  --basic-mode-color: #5e35b1; /* Darker Purple */
-  --basic-mode-hover-color: #673ab7; /* Darker Purple Hover */
-  --test-mode-color: #9575cd; /* Lighter Purple */
-  --test-mode-hover-color: #b39ddb; /* Lighter Purple Hover */
+  
+  /* Mode colors */
+  --basic-mode-color: #5e35b1; 
+  --basic-mode-hover-color: #673ab7; 
+  --test-mode-color: #9575cd; 
+  --test-mode-hover-color: #b39ddb; 
 }
 
 body {
@@ -28,6 +30,7 @@ canvas#bg {
   z-index: -1;
 }
 
+/* --- Controls Container --- */
 .controls {
   position: fixed;
   bottom: 20px;
@@ -40,9 +43,11 @@ canvas#bg {
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
+  align-items: center; /* Центрирование по вертикали */
   gap: 20px;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  max-width: 95vw; /* Чтобы не вылезало на мобильных */
+  justify-content: center;
 }
 
 .control-group {
@@ -53,6 +58,7 @@ canvas#bg {
 
 label {
   font-weight: 500;
+  white-space: nowrap;
 }
 
 input[type="text"],
@@ -66,13 +72,14 @@ select {
   transition: border-color 0.3s, box-shadow 0.3s;
 }
 
-/* Mode-specific focus colors */
+/* --- Focus States --- */
 body.basic-mode input[type="text"]:focus,
 body.basic-mode select:focus {
   outline: none;
   border-color: var(--basic-mode-color);
   box-shadow: 0 0 5px var(--basic-mode-color);
 }
+
 body.test-mode input[type="text"]:focus,
 body.test-mode select:focus {
   outline: none;
@@ -80,7 +87,45 @@ body.test-mode select:focus {
   box-shadow: 0 0 5px var(--test-mode-color);
 }
 
+/* СТИЛЬ ДЛЯ СЕЛЕКТА РАЗРЕШЕНИЯ, чтобы он был как инпут */
+#res-select {
+    /* Используем те же переменные, что и для input[type="text"] */
+    background-color: var(--input-bg-color);
+    color: var(--text-color);
+    border: 1px solid var(--input-border-color);
+    border-radius: 8px;
+    
+    /* Важно: делаем высоту и паддинги такими же, как у инпута */
+    padding: 9px 12px; 
+    height: auto;      
+    font-size: 14px;
+    
+    /* Стилизация выпадающей стрелки */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="%23e0e0e0" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+    background-repeat: no-repeat;
+    background-position-x: calc(100% - 8px);
+    background-position-y: center;
+    padding-right: 32px; 
+    min-width: 140px;
+}
 
+/* Фокус для селекта разрешения */
+body.basic-mode #res-select:focus {
+    outline: none;
+    border-color: var(--basic-mode-color);
+    box-shadow: 0 0 5px var(--basic-mode-color);
+}
+body.test-mode #res-select:focus {
+    outline: none;
+    border-color: var(--test-mode-color);
+    box-shadow: 0 0 5px var(--test-mode-color);
+}
+
+
+/* --- Buttons --- */
 button {
   color: white;
   border: none;
@@ -89,17 +134,29 @@ button {
   cursor: pointer;
   font-weight: 600;
   font-size: 14px;
-  transition: background-color 0.3s;
+  transition: background-color 0.3s, transform 0.1s;
   letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
-/* Mode-specific button colors */
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    background-color: var(--disabled-color) !important;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* --- Mode-specific Button Colors --- */
 body.basic-mode .button-group button {
     background-color: var(--basic-mode-color);
 }
 body.basic-mode .button-group button:hover {
     background-color: var(--basic-mode-hover-color);
 }
+
 body.test-mode .controls button {
     background-color: var(--test-mode-color);
 }
@@ -107,12 +164,7 @@ body.test-mode .controls button:hover {
     background-color: var(--test-mode-hover-color);
 }
 
-
-button:disabled {
-    background-color: var(--disabled-color) !important;
-    cursor: not-allowed;
-}
-
+/* --- Toggle Button (ON/OFF) --- */
 #theme-toggle-btn {
     width: 50px;
     font-weight: bold;
@@ -122,7 +174,6 @@ button:disabled {
     padding: 9px 0;
 }
 
-/* Specific button overrides */
 body.test-mode #theme-toggle-btn.on {
     background-color: var(--test-mode-color);
 }
@@ -137,10 +188,7 @@ body.test-mode #theme-toggle-btn.on:hover {
     background-color: var(--button-off-hover-bg) !important;
 }
 
-option.disabled {
-    color: #888;
-}
-
+/* --- Style Info Box (Test Mode) --- */
 #style-info-container {
   position: fixed;
   top: 20px;
@@ -153,49 +201,46 @@ option.disabled {
   max-height: calc(100vh - 40px);
   overflow-y: auto;
   border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 13px;
+  z-index: 100;
 }
 
-/* Mode-specific param name colors */
-body.basic-mode .param-name {
-  font-weight: bold;
-  color: var(--basic-mode-color);
-}
-body.test-mode .param-name {
-  font-weight: bold;
-  color: var(--test-mode-color);
-}
+/* Info Colors */
+body.basic-mode .param-name { font-weight: bold; color: var(--basic-mode-color); }
+body.test-mode .param-name { font-weight: bold; color: var(--test-mode-color); }
 
-.param-value {
-    line-height: 1.6;
-}
+.param-value { line-height: 1.6; }
 
 .param-value .color-chip {
-    display: inline-block; /* Treat as a single unbreakable block */
-    white-space: nowrap;   /* Ensure content within doesn't wrap */
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
     margin-right: 5px;
-    vertical-align: middle; /* Align nicely with the text */
+    background: rgba(0,0,0,0.2);
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-bottom: 2px;
 }
 .param-value .color-swatch {
-    width: 12px;
-    height: 12px;
+    width: 10px;
+    height: 10px;
     border: 1px solid #fff;
     margin-right: 5px;
-    display: inline-block; /* Ensure swatch is an inline block */
-    vertical-align: middle; /* Align with the text */
+    display: inline-block;
 }
 
-
-/* --- Mode Switcher Styles --- */
+/* --- Mode Switcher (Top Left) --- */
 .mode-switcher {
     position: fixed;
     top: 20px;
     left: 20px;
     display: flex;
-    gap: 6px; /* Added gap between buttons */
+    gap: 6px;
     background-color: var(--control-bg-color);
     border-radius: 10px;
     padding: 5px;
     border: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 100;
 }
 
 .mode-btn {
@@ -208,27 +253,26 @@ body.test-mode .param-name {
     font-weight: 500;
     border-radius: 7px;
     transition: all 0.3s;
-    opacity: 0.7; /* Non-active buttons are less opaque */
+    opacity: 0.6;
 }
 
-.mode-btn:hover {
-    opacity: 1;
-}
+.mode-btn:hover { opacity: 0.9; }
 
 .mode-btn.active {
     opacity: 1;
-    transform: scale(1.05); /* Make active button slightly larger */
+    transform: scale(1.02);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
-#basic-mode-btn {
-    background-color: var(--basic-mode-color);
-}
+#basic-mode-btn.active { background-color: var(--basic-mode-color); }
+#test-mode-btn.active { background-color: var(--test-mode-color); }
 
-#test-mode-btn {
-    background-color: var(--test-mode-color);
-}
+/* --- Visibility Utility --- */
+body.basic-mode .test-only { display: none !important; }
+option.disabled { color: #777; font-style: italic; }
 
-/* --- UI Mode Visibility --- */
-body.basic-mode .test-only {
-    display: none !important;
-}
+/* Scrollbar for info container */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: rgba(0, 0, 0, 0.1); }
+::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #777; }

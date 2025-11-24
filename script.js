@@ -1,8 +1,7 @@
-
 // --- Базовая настройка Three.js ---
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#bg'), antialias: true });
+const renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('#bg'), antialias: true, preserveDrawingBuffer: true }); // preserveDrawingBuffer важен для скриншотов
 renderer.setSize(window.innerWidth, window.innerHeight);
 camera.position.setZ(5);
 
@@ -56,7 +55,7 @@ const styleInfoContainer = document.getElementById('style-info-container');
 const themeToggleBtn = document.getElementById('theme-toggle-btn');
 const basicModeBtn = document.getElementById('basic-mode-btn');
 const testModeBtn = document.getElementById('test-mode-btn');
-
+const resSelect = document.getElementById('res-select'); 
 
 // --- ФУНКЦИЯ ГЕНЕРАЦИИ ТЕКСТУРЫ ШУМА ---
 function generateNoiseTexture() {
@@ -92,21 +91,23 @@ async function init() {
     quad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2));
     multipassScene.add(quad);
     
-    // Устанавливаем начальную тему и применяем стиль по умолчанию
     themeSelect.value = currentThemeName;
-    await switchTheme(currentThemeName, false); // Не применяем стиль по умолчанию, т.к. animate еще не запущен
+    await switchTheme(currentThemeName, false); 
     applyStyle(getDefaultStyleForTheme(currentThemeName));
-
 
     updateToggleButton();
     addEventListeners();
-    setUIMode('basic'); // Открываем в 'basic' режиме по умолчанию
+    setUIMode('basic'); 
     
     animate();
 }
 
 function animate() {
     requestAnimationFrame(animate);
+    renderFrame();
+}
+
+function renderFrame() {
     const time = performance.now() * 0.001;
     if (isMultipass) {
         if (!bufferA_Mat || !bufferB_Mat || !bufferC_Mat || !bufferD_Mat || !imageMat) return;
@@ -146,14 +147,13 @@ function animate() {
 // --- Управление UI режимами ---
 function setUIMode(mode) {
     currentUIMode = mode;
-    document.body.className = mode + '-mode'; // Устанавливаем класс для body
+    document.body.className = mode + '-mode'; 
     if (mode === 'basic') {
         basicModeBtn.classList.add('active');
         testModeBtn.classList.remove('active');
-    } else { // 'test'
+    } else { 
         testModeBtn.classList.add('active');
         basicModeBtn.classList.remove('active');
-        // При переключении в Test режим, убедимся что UI отображает текущую активную тему
         themeSelect.value = currentThemeName;
         updateToggleButton();
         updateSavedStylesDropdown();
@@ -161,10 +161,8 @@ function setUIMode(mode) {
     }
 }
 
-
 // --- Управление темами и стилями ---
 async function switchTheme(themeName, applyDefault = true) {
-    // В режиме "Test" проверяем, выключена ли тема
     if (disabledThemes[themeName] && currentUIMode === 'test') { 
         planeMesh.visible = false;
         return;
@@ -207,7 +205,6 @@ async function switchTheme(themeName, applyDefault = true) {
         planeMesh.material = material;
     }
     
-    // Обновляем UI только в режиме 'test'
     if (currentUIMode === 'test') {
         updateSavedStylesDropdown();
     }
@@ -233,7 +230,6 @@ function applyStyle(style) {
             }
         }
     }
-    // Обновляем инфо только в 'test' режиме
     if (currentUIMode === 'test') {
         updateStyleInfo(style);
     }
@@ -262,7 +258,7 @@ function handleSaveStyle() {
     if (!styleName || !styleName.trim()) { alert("Save cancelled: Style name cannot be empty."); return; }
     if (!allSavedStyles[currentThemeName]) { allSavedStyles[currentThemeName] = {}; }
     if (allSavedStyles[currentThemeName][styleName]) {
-        const password = prompt(`Style \\"${styleName}\\" already exists. Enter the password to overwrite:`);
+        const password = prompt(`Style \"${styleName}\" already exists. Enter the password to overwrite:`);
         if (password !== "стиль") { alert("Incorrect password. Save cancelled."); return; }
     }
     allSavedStyles[currentThemeName][styleName] = { ...currentStyle };
@@ -270,18 +266,18 @@ function handleSaveStyle() {
     updateSavedStylesDropdown();
     savedStylesSelect.value = styleName; 
     deleteStyleBtn.disabled = false;
-    alert(`Style \\"${styleName}\\" saved for theme \\"${currentThemeName}\\"!`);
+    alert(`Style \"${styleName}\" saved for theme \"${currentThemeName}\"!`);
 }
 
 function handleDeleteStyle() {
     const styleName = savedStylesSelect.value;
     if (!styleName) { alert("Please select a style to delete."); return; }
-    if (confirm(`Are you sure you want to delete the style \\"${styleName}\\"?`)) {
+    if (confirm(`Are you sure you want to delete the style \"${styleName}\"?`)) {
         delete allSavedStyles[currentThemeName][styleName];
         saveAllStylesToStorage();
         updateSavedStylesDropdown();
         applyStyle(getDefaultStyleForTheme(currentThemeName)); 
-        alert(`Style \\"${styleName}\\" deleted.`);
+        alert(`Style \"${styleName}\" deleted.`);
     }
 }
 
@@ -293,9 +289,9 @@ function updateStyleInfo(style) {
         const paramDiv = document.createElement('div');
         let displayValue;
         if (key === 'palette' && Array.isArray(value)) {
-            displayValue = value.map(color => `<span style="display: inline-block; width: 12px; height: 12px; background-color: ${color}; border: 1px solid #fff; margin-right: 5px; vertical-align: middle;"></span>${color}`).join(', ');
+            displayValue = value.map(color => `<span class="color-chip"><span class="color-swatch" style="background-color: ${color};"></span>${color}</span>`).join('<br>');
         } else if (typeof value === 'string' && value.startsWith('#')) {
-            displayValue = `<span style="display: inline-block; width: 12px; height: 12px; background-color: ${value}; border: 1px solid #fff; margin-right: 5px; vertical-align: middle;"></span>${value}`;
+            displayValue = `<span class="color-chip"><span class="color-swatch" style="background-color: ${value};"></span>${value}</span>`;
         } else if (typeof value === 'number') { displayValue = value.toFixed(4); } 
         else { continue; }
         paramDiv.innerHTML = `<span class="param-name">${key}:</span> <span class="param-value">${displayValue}</span>`;
@@ -348,7 +344,7 @@ function getUniformsForTheme(theme) {
     if (theme === 'exotic_nebula') return { ...common, iChannel0: { value: noiseTexture }, iMouse: { value: new THREE.Vector2(window.innerWidth / 2, window.innerHeight / 2) }, palette: { value: [] }, detail_scale: { value: 0.5 }, gamma: { value: 0.6 }, distortion: { value: 12.0 }, speed_multiplier: { value: 1.0 } };
     if (theme === 'backbone') return { ...common, core_color: { value: new THREE.Color("#ff8c00") }, abstraction: { value: 0.7 }, gamma: { value: 1.05 }, brightness: { value: 1.2 }, nebula_strength: { value: 0.9 }, movement_speed: { value: 0.5 } };
     if (theme === 'galaxy') return { ...common, palette: { value: [] }, brightness: { value: 1.0 }, star_density: { value: 17.0 }, nebula_complexity: { value: 0.9 } };
-    if (theme === 'gargantua') return { brightness: { value: 0.00073 }, darkmatter: { value: 0.1 }, distfading: { value: 0.73 }, saturation: { value: 0.95 }, formuparam: { value: 0.533 }, zoom: { value: 0.997 }, tile: { value: 4.585 }, speed: { value: -0.0001 } };
+    if (theme === 'gargantua') return { brightness: { value: 0.00073 }, darkmatter: { value: 0.1 }, distfading: { value: 0.73 }, saturation: { value: 0.95 }, formuparam: { value: 0.533 }, zoom: { value: 0.997 }, tile: { value: 4.585 }, speed: -0.0001 };
     return common;
 }
 
@@ -382,15 +378,13 @@ async function performGeneration() {
     generateBtn.disabled = true;
 
     let themeToUse = currentThemeName;
-    // Логика для 'basic' режима
     if (currentUIMode === 'basic') {
         const enabledThemes = Object.keys(THEMES).filter(t => !disabledThemes[t] && t !== lastGeneratedTheme);
         if (enabledThemes.length > 0) {
             themeToUse = enabledThemes[Math.floor(Math.random() * enabledThemes.length)];
-            lastGeneratedTheme = themeToUse; // Запоминаем последнюю использованную тему
-            await switchTheme(themeToUse, false); // Переключаем тему "под капотом"
+            lastGeneratedTheme = themeToUse; 
+            await switchTheme(themeToUse, false); 
         } else {
-             // Если осталась только одна тема, используем ее
             const allEnabled = Object.keys(THEMES).filter(t => !disabledThemes[t]);
             if(allEnabled.length === 1) {
                 themeToUse = allEnabled[0];
@@ -408,7 +402,6 @@ async function performGeneration() {
     const style = await requestStyleFromNous(mood, themeToUse);
     if (style) { 
         applyStyle(style); 
-        // В режиме 'test' сбрасываем выбор сохраненного стиля
         if(currentUIMode === 'test') {
             savedStylesSelect.value = ''; 
             deleteStyleBtn.disabled = true; 
@@ -416,6 +409,88 @@ async function performGeneration() {
     }
     generateBtn.textContent = 'Generate New';
     generateBtn.disabled = false;
+}
+
+// --- Новые функции экспорта и ресайза ---
+
+function updateRenderSize(width, height) {
+    if (camera) {
+        camera.aspect = width / height;
+        camera.updateProjectionMatrix();
+    }
+    if (renderer) {
+        renderer.setSize(width, height);
+    }
+    const resVec = new THREE.Vector2(width, height);
+
+    if (isMultipass) {
+        [bufferA_RT, bufferA_prev_RT, bufferB_RT, bufferC_RT, bufferD_RT].forEach(rt => {
+            if (rt) rt.setSize(width, height);
+        });
+        [bufferA_Mat, bufferB_Mat, bufferC_Mat, bufferD_Mat, imageMat].forEach(mat => {
+            if (mat && mat.uniforms.iResolution) {
+                mat.uniforms.iResolution.value = resVec;
+            }
+        });
+    } else {
+        if (planeMesh && planeMesh.material && planeMesh.material.uniforms.iResolution) {
+            planeMesh.material.uniforms.iResolution.value = resVec;
+        }
+    }
+}
+
+function getTargetResolution() {
+    const val = resSelect.value;
+    if (val === 'window') {
+        return { w: window.innerWidth, h: window.innerHeight };
+    }
+    const parts = val.split('x');
+    return { w: parseInt(parts[0]), h: parseInt(parts[1]) };
+}
+
+// Функции управления темами (вкл/выкл)
+function loadDisabledThemes() {
+    try { disabledThemes = JSON.parse(localStorage.getItem('disabledThemes')) || {}; } 
+    catch (e) { disabledThemes = {}; }
+}
+function saveDisabledThemes() { localStorage.setItem('disabledThemes', JSON.stringify(disabledThemes)); }
+
+function populateThemeSelect() {
+    themeSelect.innerHTML = '';
+    Object.keys(THEMES).forEach(key => {
+        const option = document.createElement('option');
+        option.value = key;
+        option.textContent = THEMES[key].name;
+        if (disabledThemes[key]) option.classList.add('disabled');
+        themeSelect.appendChild(option);
+    });
+}
+
+function updateToggleButton() {
+    const isOff = !!disabledThemes[currentThemeName];
+    if (isOff) {
+        themeToggleBtn.textContent = "OFF";
+        themeToggleBtn.classList.remove('on');
+        themeToggleBtn.classList.add('off');
+        themeSelect.options[themeSelect.selectedIndex].classList.add('disabled');
+    } else {
+        themeToggleBtn.textContent = "ON";
+        themeToggleBtn.classList.remove('off');
+        themeToggleBtn.classList.add('on');
+        themeSelect.options[themeSelect.selectedIndex].classList.remove('disabled');
+    }
+}
+
+function toggleTheme() {
+    if (disabledThemes[currentThemeName]) {
+        delete disabledThemes[currentThemeName];
+        if (currentThemeName === themeSelect.value) planeMesh.visible = true;
+    } else {
+        disabledThemes[currentThemeName] = true;
+        if (currentThemeName === themeSelect.value) planeMesh.visible = false;
+    }
+    saveDisabledThemes();
+    updateToggleButton();
 }
 
 function addEventListeners() {
@@ -436,7 +511,6 @@ function addEventListeners() {
     deleteStyleBtn.addEventListener('click', handleDeleteStyle);
     themeToggleBtn.addEventListener('click', toggleTheme);
     
-    // Переключатели режимов
     basicModeBtn.addEventListener('click', () => setUIMode('basic'));
     testModeBtn.addEventListener('click', () => setUIMode('test'));
 
@@ -447,64 +521,71 @@ function addEventListeners() {
     });
 
     window.addEventListener('resize', () => {
-        camera.aspect = window.innerWidth / window.innerHeight;
-        camera.updateProjectionMatrix();
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        const resVec = new THREE.Vector2(window.innerWidth, window.innerHeight);
-        if(isMultipass) {
-             [bufferA_RT, bufferA_prev_RT, bufferB_RT, bufferC_RT, bufferD_RT].forEach(rt => rt.setSize(window.innerWidth, window.innerHeight));
-             [bufferA_Mat, bufferB_Mat, bufferC_Mat, bufferD_Mat, imageMat].forEach(mat => { if(mat && mat.uniforms.iResolution) mat.uniforms.iResolution.value = resVec; });
+        updateRenderSize(window.innerWidth, window.innerHeight);
+    });
+
+    // --- Скачивание JPG ---
+    document.getElementById('download-jpg-btn').addEventListener('click', () => {
+        const { w, h } = getTargetResolution();
+        updateRenderSize(w, h); // Меняем размер
+
+        // Рендерим кадр
+        if (isMultipass) {
+            for(let i=0; i<5; i++) { // Прогрев буферов
+                renderFrame(); 
+            }
         } else {
-            if (planeMesh.material && planeMesh.material.uniforms.iResolution) { planeMesh.material.uniforms.iResolution.value = resVec; }
+            renderer.render(scene, camera);
         }
+        
+        const link = document.createElement('a');
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+        link.download = `shader_${currentThemeName}_${w}x${h}_${timestamp}.jpg`;
+        link.href = document.querySelector('#bg').toDataURL('image/jpeg', 0.95);
+        link.click();
+
+        updateRenderSize(window.innerWidth, window.innerHeight); // Возврат
+    });
+
+    // --- Скачивание WebM ---
+    document.getElementById('download-webm-btn').addEventListener('click', async () => {
+        const btn = document.getElementById('download-webm-btn');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Recording...";
+
+        const { w, h } = getTargetResolution();
+        updateRenderSize(w, h);
+
+        const canvas = document.querySelector('#bg');
+        const stream = canvas.captureStream(60); 
+        const recorder = new MediaRecorder(stream, {
+            mimeType: 'video/webm; codecs=vp9',
+            videoBitsPerSecond: 10000000 
+        });
+
+        const chunks = [];
+        recorder.ondataavailable = (e) => { if (e.data.size > 0) chunks.push(e.data); };
+        recorder.onstop = () => {
+            const blob = new Blob(chunks, { type: 'video/webm' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            link.href = url;
+            link.download = `shader_${currentThemeName}_${w}x${h}_${timestamp}.webm`;
+            link.click();
+            URL.revokeObjectURL(url);
+            
+            updateRenderSize(window.innerWidth, window.innerHeight);
+            btn.disabled = false;
+            btn.textContent = originalText;
+        };
+
+        recorder.start();
+        await new Promise(resolve => setTimeout(resolve, 5000)); // 5 секунд записи
+        recorder.stop();
     });
 }
 
-function populateThemeSelect() {
-    themeSelect.innerHTML = '';
-    for (const key in THEMES) {
-        const option = document.createElement('option');
-        option.value = key;
-        option.textContent = THEMES[key].name;
-        if (disabledThemes[key]) {
-            option.classList.add('disabled');
-            option.textContent += ' (OFF)';
-        }
-        themeSelect.appendChild(option);
-    }
-}
-
-function toggleTheme() {
-    const selectedTheme = themeSelect.value;
-    disabledThemes[selectedTheme] = !disabledThemes[selectedTheme];
-    saveDisabledThemes();
-    populateThemeSelect();
-    themeSelect.value = selectedTheme;
-    // Обновляем визуальное состояние
-    if(disabledThemes[selectedTheme]){
-        planeMesh.visible = false;
-    } else {
-        // Если тема была выключена и мы ее включаем, переключимся на нее
-        switchTheme(selectedTheme);
-    }
-    updateToggleButton();
-}
-
-function updateToggleButton() {
-    const currentIsDisabled = disabledThemes[themeSelect.value];
-    if (currentIsDisabled) {
-        themeToggleBtn.textContent = 'OFF';
-        themeToggleBtn.classList.remove('on');
-        themeToggleBtn.classList.add('off');
-    } else {
-        themeToggleBtn.textContent = 'ON';
-        themeToggleBtn.classList.remove('off');
-        themeToggleBtn.classList.add('on');
-    }
-}
-
-function saveDisabledThemes() { localStorage.setItem('disabledThemes', JSON.stringify(disabledThemes)); }
-function loadDisabledThemes() { disabledThemes = JSON.parse(localStorage.getItem('disabledThemes')) || {}; }
-
-// --- Инициализация ---
+// Запуск
 init();

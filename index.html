@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Shader Composer</title>
-    <link rel="stylesheet" href="style.css?v=1.7">
+    <link rel="stylesheet" href="style.css?v=1.9">
 </head>
 <body>
     <canvas id="bg"></canvas>
@@ -15,13 +15,11 @@
     </div>
 
     <div class="controls">
-        <!-- Группа, видимая во всех режимах -->
         <div class="control-group">
             <label for="mood-input">Mood:</label>
             <input type="text" id="mood-input" placeholder="e.g., epic, dreamy, melancholic...">
         </div>
 
-        <!-- Группы только для режима "Test" -->
         <div class="control-group test-only">
             <label for="theme-select">Theme:</label>
             <select id="theme-select"></select>
@@ -32,19 +30,28 @@
             <select id="saved-styles-select"></select>
         </div>
         
-        <!-- Кнопки -->
-        <div class="control-group button-group">
+        <div class="control-group button-group" style="align-items: center;">
             <button id="generate-btn">Generate New</button>
-            <button id="save-style-btn" class="test-only">Save Current Style</button>
-            <button id="delete-style-btn" class="test-only">Delete Selected Style</button>
+            
+            <select id="res-select">
+                <option value="window">Window Size</option>
+                <option value="1280x720">1280x720 (HD)</option>
+                <option value="1920x1080" selected>1920x1080 (FHD)</option>
+                <option value="1080x1920">1080x1920 (Phone)</option>
+            </select>
+
+            <button id="download-jpg-btn">JPG</button>
+            <button id="download-webm-btn">WebM (5s)</button>
+            
+            <button id="save-style-btn" class="test-only">Save Style</button>
+            <button id="delete-style-btn" class="test-only">Delete Style</button>
         </div>
     </div>
 
     <div id="style-info-container" class="test-only">
-        <!-- Информация о текущем стиле будет здесь -->
-    </div>
+        </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="script.js?v=1.7"></script>
+    <script src="script.js?v=1.9"></script>
 </body>
 </html>
